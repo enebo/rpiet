@@ -1,0 +1,9 @@
+.DS_Store
+manifest.mf
+*~
+*.orig
+*.rej
+/target/
+dist
+build
+nbproject
