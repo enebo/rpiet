@@ -70,11 +70,7 @@ module RPiet
           end
 
           dmesg "Trying again at #{nx}, #{ny}. #{@pvm}"
-          if seen_white
-            ex, ey = @groups[ex][ey].point_for(@pvm.dp, @pvm.cc)
-          else
-            ex, ey = @groups[@x][@y].point_for(@pvm.dp, @pvm.cc)
-          end
+          ex, ey = @groups[@x][@y].point_for(@pvm.dp, @pvm.cc) if !seen_white
           next
         elsif @pixels[nx][ny] == RPiet::Color::RGB_WHITE
           if !seen_white
