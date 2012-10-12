@@ -15,7 +15,9 @@ end
 opts.parse!(ARGV)
 opts.usage("You need to supply a source image filename.") unless ARGV.first
 
-image = RPiet::Image.new('file:' + ARGV.first)
+filename = ARGV.first
+filename = 'file:' + ARGV.first if File.exist? filename
+image = RPiet::Image.new(filename)
 interpreter = RPiet::Interpreter.new(image, codel_width)
 while(interpreter.step) do
 end
