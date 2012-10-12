@@ -4,7 +4,6 @@ require 'rpiet/image'
 require 'rpiet/group'
 
 module RPiet
-  Debug = false
   ##
   #                     Lightness change
   #Hue change     None         1 Darker     2 Darker
@@ -23,12 +22,22 @@ module RPiet
                [:c_in, :nout, :cout]]
 
   class Interpreter
-    def initialize(source, pvm=RPiet::Machine.new)
-      @x, @y, @pvm, @debug, @step_number = 0, 0, pvm, RPiet::Debug, 1
+    def self.debug
+      @debug
+    end
+
+    def self.debug=(value)
+      @debug = value
+    end
+
+    def initialize(source, codel_width, pvm=RPiet::Machine.new)
+      @x, @y, @pvm, @debug, @step_number = 0, 0, pvm, self.class.debug, 1
       @source = source
       @rows, @cols = @source.size
-      @change_flag = false
-      @pixels = alloc_matrix { |i, j| @source.pixel(i, j) }
+      dmesg "Codel Width #{codel_width}"
+      @rows /= codel_width
+      @cols /= codel_width
+      @pixels = alloc_matrix { |i, j| @source.pixel(i*codel_width, j*codel_width) }
       @groups = calculate_groups(alloc_matrix { |i, j| 0 })
     end
 
@@ -44,26 +53,28 @@ module RPiet
     def step
       dmesg "\n-- STEP: #{@step_number}"
       @pvm.block_value = @groups[@x][@y].size
-      i = 1
+      i = 0
       seen_white = false
       dmesg "Group for #{@x}, #{@y} is #{@groups[@x][@y]}"
       ex, ey = @groups[@x][@y].point_for(@pvm.dp, @pvm.cc)
 #      dmesg "E: #{ex}, #{ey}"
-      while i <= 8 do
+      while i < 8 do
         nx, ny = @pvm.dp.next_valid(ex, ey)
-#        dmesg "NEXT: #{nx}, #{ny}"
+        dmesg "NEXT: #{nx}, #{ny}"
         if !valid?(nx, ny)
           i += 1
-          if @change_flag
-            @change_flag = false
+          if i.even?
             @pvm.dp.rotate!
           else
-            @change_flag = true
             @pvm.cc.switch!
           end
+
           dmesg "Trying again at #{nx}, #{ny}. #{@pvm}"
-          ex, ey = @groups[@x][@y].point_for(@pvm.dp, @pvm.cc)
-#          dmesg "#{ex}, #{ey}"
+          if seen_white
+            ex, ey = @groups[ex][ey].point_for(@pvm.dp, @pvm.cc)
+          else
+            ex, ey = @groups[@x][@y].point_for(@pvm.dp, @pvm.cc)
+          end
           next
         elsif @pixels[nx][ny] == RPiet::Color::RGB_WHITE
           if !seen_white
@@ -123,6 +134,7 @@ module RPiet
     end
 
     def alloc_matrix
+      dmesg "allocating matrix #{@rows} x #{@cols}"
       Array.new(@rows) { Array.new(@cols) {nil} }.tap do |matrix|
         walk_matrix(matrix) { |i, j| matrix[i][j] = yield i, j }
       end

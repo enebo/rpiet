@@ -6,7 +6,7 @@ module RPiet
     def switch!(amount = 1); @direction *= -1.**(amount % 2); end
 
     def inspect
-      @direction.inspect
+      (@direction == LEFT ? "left(0)" : "right(1)")
     end
     alias :to_s :inspect
   end

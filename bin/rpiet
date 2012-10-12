@@ -3,16 +3,19 @@
 require 'optparse'
 require 'rpiet'
 
+codel_width = 1
+
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} -d image_file"
 
-  opts.on("-d", "--debug", "turn on debugging") do
-    RPiet::Debug = true
-  end
+  opts.on("-d", "--debug", "turn on debugging") { RPiet::Interpreter.debug = true }
+  opts.on("-c", "--codel-width w", "size of codel") { |w| codel_width = w.to_i }
 end
 
 opts.parse!(ARGV)
 opts.usage("You need to supply a source image filename.") unless ARGV.first
-interpreter = RPiet::Interpreter.new(RPiet::Image.new('file:' + ARGV.first))
+
+image = RPiet::Image.new('file:' + ARGV.first)
+interpreter = RPiet::Interpreter.new(image, codel_width)
 while(interpreter.step) do
 end
