@@ -8,7 +8,7 @@ module RPiet
   # dp - Direction Pointer (right, down, left, up)
   # cc - Codel Chooser (left, right)
   class Machine
-    attr_reader :dp, :cc
+    attr_reader :dp, :cc, :stack
     attr_accessor :block_value
 
     def initialize
@@ -40,7 +40,7 @@ module RPiet
         num %= depth
         return if depth <= 0 || num == 0
         x = -num.abs + depth * (num < 0 ? 0 : 1)
-        @stack[-depth..-1] = @stack[x..-1] + @stack[-depth...x]
+        @stack[-depth..-1] = @stack[-x..-1] + @stack[-depth...-x]
       end
     end
 
