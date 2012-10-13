@@ -13,6 +13,10 @@ module RPiet
       @lightness, @hue = lightness, hue
     end
 
+    def to_initial
+      @lightness.to_initial + @hue.to_initial
+    end
+
     def to_s
       (@lightness == LIGHTNESS::NORMAL ? "" : @lightness.to_s + ' ') + @hue.to_s
     end
@@ -20,6 +24,9 @@ module RPiet
 
     RGB_WHITE, WHITE = '0xffffff', Color.new('white', '')
     RGB_BLACK, BLACK = '0x000000', Color.new('black', '')
+
+    class << WHITE; def to_initial; '..'; end; end
+    class << BLACK; def to_initial; '++'; end; end
 
     RGB = {
       '0xffc0c0' => Color.new(LIGHTNESS::LIGHT, HUE::RED),

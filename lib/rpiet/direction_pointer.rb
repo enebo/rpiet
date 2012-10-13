@@ -26,6 +26,11 @@ module RPiet
       [x + dx, y + dy]
     end
 
+    ASCII_ARROWS = ['>', 'v', '<', '^']
+    def ascii
+      ASCII_ARROWS[@direction.value]
+    end
+
     def inspect
       @direction.inspect
     end

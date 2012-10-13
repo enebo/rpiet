@@ -13,16 +13,16 @@ module RPiet
       self << point
     end
 
-    def point_for(dp, cc)
-      case dp.direction
+    def point_for(pvm)
+      case pvm.dp.direction
       when RIGHT then
-        cc.direction == RPiet::CodelChooser::LEFT ? @rl : @rr
+        pvm.cc.direction == RPiet::CodelChooser::LEFT ? @rl : @rr
       when LEFT then
-        cc.direction == RPiet::CodelChooser::LEFT ? @ll : @lr
+        pvm.cc.direction == RPiet::CodelChooser::LEFT ? @ll : @lr
       when DOWN then
-        cc.direction == RPiet::CodelChooser::LEFT ? @dl : @dr
+        pvm.cc.direction == RPiet::CodelChooser::LEFT ? @dl : @dr
       when UP then
-        cc.direction == RPiet::CodelChooser::LEFT ? @ul : @ur
+        pvm.cc.direction == RPiet::CodelChooser::LEFT ? @ul : @ur
       end
     end
 
@@ -33,6 +33,10 @@ module RPiet
       update_right point
       
       @points << point
+    end
+
+    def include?(point)
+      @points.include? point
     end
 
     def finish

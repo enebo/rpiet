@@ -45,7 +45,7 @@ module RPiet
     end
 
     def inspect
-      "DP: #{@dp}, CC: #{@cc}, BV: #{@block_value}, STACK: #{@stack}"
+      "dp: #{@dp.ascii}, cc: #{@cc.ascii(@dp)}, bv: #{@block_value}, st: #{@stack}"
     end
     alias :to_s :inspect
 

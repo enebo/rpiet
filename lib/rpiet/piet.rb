@@ -31,7 +31,7 @@ module RPiet
     end
 
     def initialize(source, codel_width, pvm=RPiet::Machine.new)
-      @x, @y, @pvm, @debug, @step_number = 0, 0, pvm, self.class.debug, 1
+      @x, @y, @pvm, @debug, @step = 0, 0, pvm, self.class.debug, 1
       @source = source
       @rows, @cols = @source.size
       dmesg "Codel Width #{codel_width}"
@@ -43,7 +43,7 @@ module RPiet
 
     def valid?(x, y)
       x >= 0 && x < @rows && y >= 0 && y < @cols && 
-        @pixels[x][y] != RPiet::Color::RGB_BLACK
+        @pixels[x][y] != RPiet::Color::BLACK
     end
 
     def dmesg(message)
@@ -51,16 +51,16 @@ module RPiet
     end
 
     def step
-      dmesg "\n-- STEP: #{@step_number}"
       @pvm.block_value = @groups[@x][@y].size
       i = 0
       seen_white = false
-      dmesg "Group for #{@x}, #{@y} is #{@groups[@x][@y]}"
-      ex, ey = @groups[@x][@y].point_for(@pvm.dp, @pvm.cc)
+      dmesg "step \##{@step}"
+      dmesg @pvm
+      dmesg @source.ascii(@groups[@x][@y])
+      ex, ey = @groups[@x][@y].point_for(@pvm)
 #      dmesg "E: #{ex}, #{ey}"
       while i < 8 do
         nx, ny = @pvm.dp.next_valid(ex, ey)
-        dmesg "NEXT: #{nx}, #{ny}"
         if !valid?(nx, ny)
           i += 1
           if i.even?
@@ -70,9 +70,9 @@ module RPiet
           end
 
           dmesg "Trying again at #{nx}, #{ny}. #{@pvm}"
-          ex, ey = @groups[@x][@y].point_for(@pvm.dp, @pvm.cc) if !seen_white
+          ex, ey = @groups[@x][@y].point_for(@pvm) if !seen_white
           next
-        elsif @pixels[nx][ny] == RPiet::Color::RGB_WHITE
+        elsif @pixels[nx][ny] == RPiet::Color::WHITE
           if !seen_white
             seen_white = true
             i = 0
@@ -80,25 +80,20 @@ module RPiet
           end
           ex, ey = nx, ny
         else
-          dmesg "#{color_s(@x, @y)} @ (#{@x}, #{@y}) -> #{color_s(nx, ny)} @ (#{nx}, #{ny}) DP:#{@pvm.dp} CC:#{@pvm.cc}"
           if !seen_white
-            dh = RPiet::Color::RGB[@pixels[nx][ny]].hue.delta(RPiet::Color::RGB[@pixels[@x][@y]].hue)
-            dd = RPiet::Color::RGB[@pixels[nx][ny]].lightness.delta(RPiet::Color::RGB[@pixels[@x][@y]].lightness)
+            dh = @pixels[nx][ny].hue.delta(@pixels[@x][@y].hue)
+            dd = @pixels[nx][ny].lightness.delta(@pixels[@x][@y].lightness)
             @pvm.__send__(OPERATION[dh][dd])
             dmesg "OPER: #{OPERATION[dh][dd]} dh: #{dh} dd: #{dd}"
           end
           dmesg "Machine state: #{@pvm}"
           @x, @y = nx, ny
-          @step_number += 1
+          @step += 1
           return true
         end
       end
       self.dmesg "Execution trapped, program terminates"
       false
-    end
-
-    def color_s(x, y)
-      RPiet::Color::RGB[@pixels[x][y]] || @pixels[x][y]
     end
 
     # always look up, left, or make new group
