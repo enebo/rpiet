@@ -5,10 +5,18 @@ require 'rpiet'
 
 codel_width = 1
 
+log = RPiet::Logger::NoOutput
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} -d image_file"
 
-  opts.on("-d", "--debug", "turn on debugging") { RPiet::Interpreter.debug = true }
+  opts.on("-d", "--debug style", "turn on debugging") do |style|
+    log = case style
+    when 'simple'
+      RPiet::Logger::SimpleAsciiOutput
+    when 'complex'
+      RPiet::Logger::ComplexAsciiOutput
+    end
+  end
   opts.on("-c", "--codel-width w", "size of codel") { |w| codel_width = w.to_i }
 end
 
@@ -18,6 +26,6 @@ opts.usage("You need to supply a source image filename.") unless ARGV.first
 filename = ARGV.first
 filename = 'file:' + ARGV.first if File.exist? filename
 image = RPiet::Image.new(filename)
-interpreter = RPiet::Interpreter.new(image, codel_width)
+interpreter = RPiet::Interpreter.new(image, codel_width, log.new)
 while(interpreter.step) do
 end

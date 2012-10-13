@@ -21,7 +21,7 @@ module RPiet
       @direction = @direction.incr amount
     end
 
-    def next_valid(x, y)
+    def next_possible(x, y)
       dx, dy = @direction.deltas
       [x + dx, y + dy]
     end

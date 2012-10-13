@@ -2,6 +2,7 @@ require 'rpiet/color'
 require 'rpiet/machine'
 require 'rpiet/image'
 require 'rpiet/group'
+require 'rpiet/event_handler'
 
 module RPiet
   ##
@@ -22,77 +23,69 @@ module RPiet
                [:c_in, :nout, :cout]]
 
   class Interpreter
-    def self.debug
-      @debug
-    end
+    attr_reader :codel_size, :pvm, :source, :groups, :x, :y
 
-    def self.debug=(value)
-      @debug = value
-    end
-
-    def initialize(source, codel_width, pvm=RPiet::Machine.new)
-      @x, @y, @pvm, @debug, @step = 0, 0, pvm, self.class.debug, 1
-      @source = source
+    def initialize(source, codel_size, event_handler=RPiet::Logger::NoOutput.new)
+      @x, @y, @pvm, @step, @codel_size = 0, 0, RPiet::Machine.new, 1, codel_size
+      @source, @event_handler = source, event_handler
       @rows, @cols = @source.size
-      dmesg "Codel Width #{codel_width}"
-      @rows /= codel_width
-      @cols /= codel_width
-      @pixels = alloc_matrix { |i, j| @source.pixel(i*codel_width, j*codel_width) }
+      @rows /= codel_size
+      @cols /= codel_size
+      @pixels = alloc_matrix { |i, j| @source.pixel(i*codel_size, j*codel_size)}
       @groups = calculate_groups(alloc_matrix { |i, j| 0 })
+      @event_handler.initialized(self)
     end
 
+    def step_number
+      @step
+    end
+
+    ##
+    # Is this point on the image and not black?
     def valid?(x, y)
       x >= 0 && x < @rows && y >= 0 && y < @cols && 
         @pixels[x][y] != RPiet::Color::BLACK
-    end
-
-    def dmesg(message)
-      $stderr.puts message if @debug
     end
 
     def step
       @pvm.block_value = @groups[@x][@y].size
       i = 0
       seen_white = false
-      dmesg "step \##{@step}"
-      dmesg @pvm
-      dmesg @source.ascii(@groups[@x][@y])
+      @event_handler.step_begin(self)
       ex, ey = @groups[@x][@y].point_for(@pvm)
-#      dmesg "E: #{ex}, #{ey}"
       while i < 8 do
-        nx, ny = @pvm.dp.next_valid(ex, ey)
+        nx, ny = @pvm.next_possible(ex, ey)
+
         if !valid?(nx, ny)
           i += 1
-          if i.even?
-            @pvm.dp.rotate!
-          else
-            @pvm.cc.switch!
-          end
+          @pvm.orient_elsewhere(i)
 
-          dmesg "Trying again at #{nx}, #{ny}. #{@pvm}"
           ex, ey = @groups[@x][@y].point_for(@pvm) if !seen_white
+          @event_handler.trying_again(self, ex, ey)
           next
         elsif @pixels[nx][ny] == RPiet::Color::WHITE
           if !seen_white
             seen_white = true
             i = 0
-            dmesg "Entering white; sliding thru"
+            @event_handler.seen_white(self)
           end
           ex, ey = nx, ny
         else
           if !seen_white
             dh = @pixels[nx][ny].hue.delta(@pixels[@x][@y].hue)
             dd = @pixels[nx][ny].lightness.delta(@pixels[@x][@y].lightness)
-            @pvm.__send__(OPERATION[dh][dd])
-            dmesg "OPER: #{OPERATION[dh][dd]} dh: #{dh} dd: #{dd}"
+            operation = OPERATION[dh][dd]
+            @pvm.__send__(operation)
+          else
+            operation = 'noop'            
           end
-          dmesg "Machine state: #{@pvm}"
+          @event_handler.operation(self, operation)
           @x, @y = nx, ny
           @step += 1
           return true
         end
       end
-      self.dmesg "Execution trapped, program terminates"
+      @event_handler.execution_completed(self)
       false
     end
 
@@ -125,7 +118,6 @@ module RPiet
     end
 
     def alloc_matrix
-      dmesg "allocating matrix #{@rows} x #{@cols}"
       Array.new(@rows) { Array.new(@cols) {nil} }.tap do |matrix|
         walk_matrix(matrix) { |i, j| matrix[i][j] = yield i, j }
       end

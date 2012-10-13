@@ -1,4 +1,5 @@
 require 'rpiet/group'
+require 'rpiet/machine'
 
 describe "Group" do
   before do
@@ -19,8 +20,7 @@ describe "Group" do
     end
     @group2.finish
 
-    @dp = RPiet::DirectionPointer.new
-    @cc = RPiet::CodelChooser.new
+    @pvm = RPiet::Machine.new
   end
 
   it "knows its size" do
@@ -28,31 +28,30 @@ describe "Group" do
   end
 
   it "can pick the right points" do
-    @group.point_for(@dp, @cc).should == [8, 5] # dp: RIGHT cc: LEFT  -> UR
-    @cc.switch! # LEFT -> RIGHT
-    @group.point_for(@dp, @cc).should == [8, 6] # dp: RIGHT cc: RIGHT  -> LR
-    @dp.rotate! # dp: RIGHT -> DOWN
-    @cc.switch! # cc: RIGHT -> LEFT
-    @group.point_for(@dp, @cc).should == [0, 7] # dp: DOWN cc: LEFT -> LR
-    @cc.switch! # cc: LEFT -> RIGHT
-    @group.point_for(@dp, @cc).should == [0, 7] # dp: DOWN cc: RIGHT -> LL
-    @dp.rotate! # dp: DOWN -> LEFT
-    @cc.switch! # cc: RIGHT -> LEFT
-    @group.point_for(@dp, @cc).should == [0, 7] # dp: LEFT cc: LEFT -> LL
-    @cc.switch! # cc: LEFT -> RIGHT
-    @group.point_for(@dp, @cc).should == [0, 3] # dp: LEFT cc: RIGHT -> UL
-    @dp.rotate! # dp: LEFT -> UP
-    @cc.switch! 
-    @group.point_for(@dp, @cc).should == [0, 3] # dp: UP cc: LEFT -> UL
-    @cc.switch! # cc: LEFT -> RIGHT
-    @group.point_for(@dp, @cc).should == [4, 3] # dp: UP cc: RIGHT -> UR
+    @group.point_for(@pvm).should == [8, 5] # dp: RIGHT cc: LEFT  -> UR
+    @pvm.cc.switch! # LEFT -> RIGHT
+    @group.point_for(@pvm).should == [8, 6] # dp: RIGHT cc: RIGHT  -> LR
+    @pvm.dp.rotate! # dp: RIGHT -> DOWN
+    @pvm.cc.switch! # cc: RIGHT -> LEFT
+    @group.point_for(@pvm).should == [0, 7] # dp: DOWN cc: LEFT -> LR
+    @pvm.cc.switch! # cc: LEFT -> RIGHT
+    @group.point_for(@pvm).should == [0, 7] # dp: DOWN cc: RIGHT -> LL
+    @pvm.dp.rotate! # dp: DOWN -> LEFT
+    @pvm.cc.switch! # cc: RIGHT -> LEFT
+    @group.point_for(@pvm).should == [0, 7] # dp: LEFT cc: LEFT -> LL
+    @pvm.cc.switch! # cc: LEFT -> RIGHT
+    @group.point_for(@pvm).should == [0, 3] # dp: LEFT cc: RIGHT -> UL
+    @pvm.dp.rotate! # dp: LEFT -> UP
+    @pvm.cc.switch! 
+    @group.point_for(@pvm).should == [0, 3] # dp: UP cc: LEFT -> UL
+    @pvm.cc.switch! # cc: LEFT -> RIGHT
+    @group.point_for(@pvm).should == [4, 3] # dp: UP cc: RIGHT -> UR
 
     # Since last group only has single wide bottom let's try another
-    @cc.switch! # cc: RIGHT -> LEFT
-    @dp.rotate! 2 # dp: UP -> DOWN
-    @group2.point_for(@dp, @cc).should == [7, 3] # dp: DOWN cc: LEFT -> LR
-    @cc.switch! # cc: RIGHT -> LEFT
-    @group2.point_for(@dp, @cc).should == [6, 3] # dp: DOWN cc: RIGHT -> LL
-    
+    @pvm.cc.switch! # cc: RIGHT -> LEFT
+    @pvm.dp.rotate! 2 # dp: UP -> DOWN
+    @group2.point_for(@pvm).should == [7, 3] # dp: DOWN cc: LEFT -> LR
+    @pvm.cc.switch! # cc: RIGHT -> LEFT
+    @group2.point_for(@pvm).should == [6, 3] # dp: DOWN cc: RIGHT -> LL
   end
 end

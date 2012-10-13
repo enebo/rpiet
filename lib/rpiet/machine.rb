@@ -15,6 +15,23 @@ module RPiet
       @stack, @dp, @cc = [], DirectionPointer.new, CodelChooser.new
       @block_value = 1
     end
+
+    ##
+    # Return the next possible location based on direction pointers facing
+    def next_possible(x, y)
+      @dp.next_possible(x, y)
+    end
+
+    ##
+    # Change either codel chooser or direction pointer to try and look
+    # at a different codel.
+    def orient_elsewhere(i)
+      if i.even?
+        dp.rotate!
+      else
+        cc.switch!
+      end
+    end
      
     def noop; end
     def push;  @stack << @block_value; end
