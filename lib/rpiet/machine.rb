@@ -51,7 +51,7 @@ module RPiet
     def pntr; unary_op { |top| @dp.rotate! top }; end
     def swch; unary_op { |top| @cc.switch! top }; end
     def n_in; puts "Enter an integer: "; @stack << $stdin.gets.to_i; end
-    def c_in; puts "> "; @stack << $stdin.read(1).to_i; end
+    def c_in; $stdout.write "> "; c = $stdin.read(1).ord; @stack << c; end
     def roll
       bin_op do |depth, num| 
         num %= depth
