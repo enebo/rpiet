@@ -1,4 +1,4 @@
-require 'rpiet/piet'
+require 'rpiet/interpreter'
 require 'rpiet/image/ascii_image'
 
 describe "RPiet::Interpreter" do

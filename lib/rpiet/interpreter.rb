@@ -5,21 +5,20 @@ require 'rpiet/event_handler'
 
 module RPiet
   class Interpreter
-    attr_reader :codel_size, :pvm, :source, :groups, :x, :y
+    attr_reader :pvm, :source, :groups, :x, :y, :step
 
-    def initialize(source, codel_size=1, event_handler=RPiet::Logger::NoOutput.new)
-      @x, @y, @pvm, @step, @codel_size = 0, 0, RPiet::Machine.new, 1, codel_size
+    def initialize(source, event_handler=RPiet::Logger::NoOutput.new)
+      @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
       @source, @event_handler = source, event_handler
       @rows, @cols = @source.size
-      @rows /= codel_size
-      @cols /= codel_size
-      @pixels = alloc_matrix { |i, j| @source.pixel(i*codel_size, j*codel_size)}
+      @pixels = alloc_matrix { |i, j| @source.pixel(i, j)}
       @groups = calculate_groups(alloc_matrix { |i, j| 0 })
       @event_handler.initialized(self)
     end
 
-    def step_number
-      @step
+    def run
+      while(next_step) do
+      end
     end
 
     ##
@@ -29,7 +28,7 @@ module RPiet
         @pixels[x][y] != RPiet::Color::BLACK
     end
 
-    def step
+    def next_step
       @pvm.block_value = @groups[@x][@y].size
       i = 0
       seen_white = false

@@ -7,6 +7,8 @@ module RPiet
     # implement raw_pixel, raw_width, and raw_height.
     #
     class Image
+      attr_reader :codel_size 
+
       def initialize(codel_size)
         @codel_size = codel_size
       end

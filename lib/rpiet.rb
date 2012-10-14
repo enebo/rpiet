@@ -1,2 +1,2 @@
 require 'rpiet/version'
-require 'rpiet/piet'
+require 'rpiet/interpreter'

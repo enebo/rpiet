@@ -32,11 +32,11 @@ module RPiet
       include RPiet::EventHandler
 
       def initialized(runtime)
-        dmesg "codel_size: #{runtime.codel_size}"
+        dmesg "codel_size: #{runtime.source.codel_size}"
       end
 
       def step_begin(runtime)
-        dmesg "step \##{runtime.step_number} -- #{runtime.pvm}"
+        dmesg "step \##{runtime.step} -- #{runtime.pvm}"
       end
 
       def trying_again(runtime, ex, ey)
