@@ -4,27 +4,10 @@ require 'rpiet/group'
 require 'rpiet/event_handler'
 
 module RPiet
-  ##
-  #                     Lightness change
-  #Hue change     None         1 Darker     2 Darker
-  #  None                      push         pop
-  # 1 Step        add          subtract     multiply
-  # 2 Steps       divide       mod          not
-  # 3 Steps       greater      pointer      switch
-  # 4 Steps       duplicate    roll         in(number)
-  # 5 Steps       in(char)     out(number)  out(char)
-  #
-  OPERATION = [[:noop, :push, :pop],
-               [:add,  :sub, :mult],
-               [:div,  :mod, :not],
-               [:gtr,  :pntr, :swch],
-               [:dup,  :roll, :n_in],
-               [:c_in, :nout, :cout]]
-
   class Interpreter
     attr_reader :codel_size, :pvm, :source, :groups, :x, :y
 
-    def initialize(source, codel_size, event_handler=RPiet::Logger::NoOutput.new)
+    def initialize(source, codel_size=1, event_handler=RPiet::Logger::NoOutput.new)
       @x, @y, @pvm, @step, @codel_size = 0, 0, RPiet::Machine.new, 1, codel_size
       @source, @event_handler = source, event_handler
       @rows, @cols = @source.size
@@ -71,10 +54,7 @@ module RPiet
           ex, ey = nx, ny
         else
           if !seen_white
-            dh = @pixels[nx][ny].hue.delta(@pixels[@x][@y].hue)
-            dd = @pixels[nx][ny].lightness.delta(@pixels[@x][@y].lightness)
-            operation = OPERATION[dh][dd]
-            @pvm.__send__(operation)
+            operation = @pvm.execute(@pixels[nx][ny], @pixels[@x][@y])
           else
             operation = 'noop'            
           end

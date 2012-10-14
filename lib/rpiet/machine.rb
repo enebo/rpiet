@@ -66,6 +66,15 @@ module RPiet
     end
     alias :to_s :inspect
 
+    ##
+    # Execute the operation represented by the two colors
+    def execute(color1, color2)
+      dh = color1.hue.delta color2.hue
+      dd = color1.lightness.delta color2.lightness
+      operation = OPERATION[dh][dd]
+      __send__(operation)
+    end
+
     private
     def bin_op(&block)
       return unless @stack.length >= 2
@@ -78,5 +87,22 @@ module RPiet
     end
 
     def math_op(op); bin_op { |a, b| @stack << a.send(op, b) }; end
+
+    ##
+    #                     Lightness change
+    #Hue change     None         1 Darker     2 Darker
+    #  None                      push         pop
+    # 1 Step        add          subtract     multiply
+    # 2 Steps       divide       mod          not
+    # 3 Steps       greater      pointer      switch
+    # 4 Steps       duplicate    roll         in(number)
+    # 5 Steps       in(char)     out(number)  out(char)
+    #
+    OPERATION = [[:noop, :push, :pop],
+                 [:add,  :sub, :mult],
+                 [:div,  :mod, :not],
+                 [:gtr,  :pntr, :swch],
+                 [:dup,  :roll, :n_in],
+                 [:c_in, :nout, :cout]]
   end
 end
