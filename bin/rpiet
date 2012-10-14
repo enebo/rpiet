@@ -2,6 +2,7 @@
 
 require 'optparse'
 require 'rpiet'
+require 'rpiet/image/url_image'
 
 codel_width = 1
 
@@ -25,7 +26,7 @@ opts.usage("You need to supply a source image filename.") unless ARGV.first
 
 filename = ARGV.first
 filename = 'file:' + ARGV.first if File.exist? filename
-image = RPiet::Image.new(filename)
+image = RPiet::Image::URLImage.new(filename)
 interpreter = RPiet::Interpreter.new(image, codel_width, log.new)
 while(interpreter.step) do
 end

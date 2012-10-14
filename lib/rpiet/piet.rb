@@ -1,6 +1,5 @@
 require 'rpiet/color'
 require 'rpiet/machine'
-require 'rpiet/image'
 require 'rpiet/group'
 require 'rpiet/event_handler'
 
