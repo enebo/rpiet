@@ -2,7 +2,7 @@ require 'rpiet/image/image'
 
 module RPiet
   module Image
-    class ASCIIImage < RPiet::Image::Image
+    class AsciiImage < RPiet::Image::Image
       def initialize(string, codel_size=1)
         @codel_size = codel_size
         lines = string.split("\n")
@@ -48,7 +48,7 @@ module RPiet
       }
 
       def str_to_rgb(str)
-        STR2RGV[str]
+        STR2RGB[str]
       end
     end
   end
