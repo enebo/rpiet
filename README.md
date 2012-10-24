@@ -8,8 +8,12 @@ This is a pretty naive implementation, but it can run things like fib:
 
 ## Running
 
-jruby -Ilib ./bin/rpiet --debug images/nfib.png
+rpiet --debug images/nfib.png
 
-Or an image from the net:
+Or an image from the net (notice codel size arg):
 
-jruby -Ilib bin/rpiet -c 8 http://www.retas.de/thomas/computer/programs/useless/secunet_contest/entry_3/s2_8.gif
+rpiet -c 8 http://www.retas.de/thomas/computer/programs/useless/secunet_contest/entry_3/s2_8.gif
+
+Or for more fun:
+
+rpiet http://www.dangermouse.net/esoteric/piet/pietquest.png
