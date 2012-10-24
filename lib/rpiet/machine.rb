@@ -56,8 +56,11 @@ module RPiet
       bin_op do |depth, num| 
         num %= depth
         return if depth <= 0 || num == 0
-        x = -num.abs + depth * (num < 0 ? 0 : 1)
-        @stack[-depth..-1] = @stack[-x..-1] + @stack[-depth...-x]
+        if num > 0
+          @stack[-depth..-1] = @stack[-num..-1] + @stack[-depth...-num]
+        elsif num < 0
+          @stack[-depth..-1] = @stack[-depth...-num] + @stack[-num..-1]
+        end
       end
     end
 
