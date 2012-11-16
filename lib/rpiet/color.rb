@@ -18,12 +18,13 @@ module RPiet
     end
 
     def to_s
-      (@lightness == LIGHTNESS::NORMAL ? "" : @lightness.to_s + ' ') + @hue.to_s
+      [@lightness == LIGHTNESS::NORMAL ? nil : @lightness.to_s,
+       @hue.to_s].compact.join('_')
     end
     alias :inspect :to_s
 
-    RGB_WHITE, WHITE = '0xffffff', Color.new('white', '')
-    RGB_BLACK, BLACK = '0x000000', Color.new('black', '')
+    RGB_WHITE, WHITE = '0xffffff', Color.new(LIGHTNESS::NORMAL, 'white')
+    RGB_BLACK, BLACK = '0x000000', Color.new(LIGHTNESS::NORMAL, 'black')
 
     class << WHITE; def to_initial; '..'; end; end
     class << BLACK; def to_initial; '++'; end; end

@@ -31,9 +31,12 @@ module RPiet
     end
 
     def to_s
+      "#{@name}"
+    end
+    
+    def inspect
       "#{@name}(#{@value})"
     end
-    alias :inspect :to_s
   end
 
   module CycleMethod
