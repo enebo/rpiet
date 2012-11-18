@@ -21,6 +21,10 @@ module RPiet
       @direction = @direction.incr amount
     end
 
+    def degrees
+      @direction.value * 90
+    end
+
     def next_possible(x, y)
       dx, dy = @direction.deltas
       [x + dx, y + dy]
