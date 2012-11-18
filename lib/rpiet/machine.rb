@@ -76,6 +76,7 @@ module RPiet
       dd = color1.lightness.delta color2.lightness
       operation = OPERATION[dh][dd]
       __send__(operation)
+      operation
     end
 
     private
