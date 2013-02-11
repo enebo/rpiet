@@ -16,6 +16,8 @@ opts = OptionParser.new do |opts|
       RPiet::Logger::SimpleAsciiOutput
     when 'complex'
       RPiet::Logger::ComplexAsciiOutput
+    when 'graphical'
+      RPiet::Logger::Graphical
     end
   end
   opts.on("-c", "--codel-size w", "size of codel") { |w| codel_size = w.to_i }

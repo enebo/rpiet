@@ -20,6 +20,19 @@ module RPiet
       end
     end
 
+    def degrees(dp)
+      case dp.direction
+      when RPiet::Direction::RIGHT
+        @direction == LEFT ? 270 : 90
+      when RPiet::Direction::UP
+        @direction == LEFT ? 180 : 0
+      when RPiet::Direction::LEFT
+        @direction == LEFT ? 90 : 270
+      when RPiet::Direction::DOWN
+        @direction == LEFT ? 0 : 180
+      end
+    end
+
     def inspect
       (@direction == LEFT ? "left(0)" : "right(1)")
     end

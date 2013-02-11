@@ -2,10 +2,11 @@ require 'rpiet/color'
 require 'rpiet/machine'
 require 'rpiet/group'
 require 'rpiet/event_handler'
+require 'rpiet/debugger/debugger'
 
 module RPiet
   class Interpreter
-    attr_reader :pvm, :source, :groups, :x, :y, :step
+    attr_reader :pvm, :source, :groups, :x, :y, :step, :rows, :cols
 
     def initialize(source, event_handler=RPiet::Logger::NoOutput.new)
       @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
@@ -14,10 +15,28 @@ module RPiet
       @pixels = alloc_matrix { |i, j| @source.pixel(i, j)}
       @groups = calculate_groups(alloc_matrix { |i, j| 0 })
       @event_handler.initialized(self)
+      @paused = true
+      @thread = Thread.current
+    end
+
+    def pause
+      @paused = true
+    end
+
+    def resume
+      @paused = false
+      @thread.run
+    end
+
+    def step
+      @paused = true
+      @thread.run
     end
 
     def run
+      Thread.stop if @paused
       while(next_step) do
+        Thread.stop if @paused
       end
     end
 
@@ -32,18 +51,20 @@ module RPiet
       @pvm.block_value = @groups[@x][@y].size
       i = 0
       seen_white = false
-      @event_handler.step_begin(self)
       ex, ey = @groups[@x][@y].point_for(@pvm)
+      @event_handler.step_begin(self, ex, ey)
       while i < 8 do
         nx, ny = @pvm.next_possible(ex, ey)
+        valid = valid?(nx, ny)
+        @event_handler.next_possible(self, nx, ny, valid)
+        Thread.stop if @paused
 
-        if !valid?(nx, ny)
+        if !valid
           i += 1
           @pvm.orient_elsewhere(i)
 
           ex, ey = @groups[@x][@y].point_for(@pvm) if !seen_white
           @event_handler.trying_again(self, ex, ey)
-          next
         elsif @pixels[nx][ny] == RPiet::Color::WHITE
           if !seen_white
             seen_white = true

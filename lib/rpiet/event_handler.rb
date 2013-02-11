@@ -7,7 +7,10 @@ module RPiet
     def initialized(runtime)
     end
 
-    def step_begin(runtime)
+    def next_possible(runtime, ex, ey, valid)
+    end
+
+    def step_begin(runtime, ex, ey)
     end
 
     def trying_again(runtime, ex, ey)
@@ -35,7 +38,7 @@ module RPiet
         dmesg "codel_size: #{runtime.source.codel_size}"
       end
 
-      def step_begin(runtime)
+      def step_begin(runtime, ex, ey)
         dmesg "step \##{runtime.step} -- #{runtime.pvm}"
       end
 
@@ -57,9 +60,41 @@ module RPiet
     end
 
     class ComplexAsciiOutput < SimpleAsciiOutput
-      def step_begin(runtime)
+      def step_begin(runtime, ex, ey)
         super
         dmesg runtime.source.ascii(runtime.groups[runtime.x][runtime.y])
+      end
+    end
+
+    class Graphical < SimpleAsciiOutput
+      def initialized(runtime)
+        require 'rpiet/debugger/debugger'
+        @debugger = RPiet::Debugger.new(runtime)
+        @debugger.bootstrap
+      end
+
+      def step_begin(runtime, ex, ey)
+        @debugger.highlight(runtime, ex, ey)
+        if @debugger.break_point?(ex, ey)
+          puts "Break point at #{ex}, #{ey}"
+        end
+      end
+      alias :trying_again :step_begin
+
+      def next_possible(runtime, x, y, valid)
+        @debugger.highlight_candidate(runtime, x, y)
+      end
+
+      def operation(runtime, operation)
+        @debugger.operation(runtime, operation)
+      end
+
+      def seen_white(runtime)
+        puts "SEEN WHITE"
+      end
+
+      def trying_again(runtime, ex, ey)
+        puts "Trying again"
       end
     end
   end
