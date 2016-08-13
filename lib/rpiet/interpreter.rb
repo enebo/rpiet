@@ -2,21 +2,20 @@ require 'rpiet/color'
 require 'rpiet/machine'
 require 'rpiet/group'
 require 'rpiet/event_handler'
-require 'rpiet/debugger/debugger'
 
 module RPiet
   class Interpreter
-    attr_reader :pvm, :source, :groups, :x, :y, :step, :rows, :cols
+    attr_reader :pvm, :source, :pixels, :groups, :x, :y, :step, :rows, :cols
 
     def initialize(source, event_handler=RPiet::Logger::NoOutput.new)
+      @thread = Thread.current
       @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
       @source, @event_handler = source, event_handler
       @rows, @cols = @source.size
       @pixels = alloc_matrix { |i, j| @source.pixel(i, j)}
-      @groups = calculate_groups(alloc_matrix { |i, j| 0 })
+      @groups_matrix, @groups = calculate_groups
+      pause
       @event_handler.initialized(self)
-      @paused = true
-      @thread = Thread.current
     end
 
     def pause
@@ -28,7 +27,7 @@ module RPiet
       @thread.run
     end
 
-    def step
+    def advance
       @paused = true
       @thread.run
     end
@@ -48,10 +47,10 @@ module RPiet
     end
 
     def next_step
-      @pvm.block_value = @groups[@x][@y].size
+      @pvm.block_value = @groups_matrix[@x][@y].size
       i = 0
       seen_white = false
-      ex, ey = @groups[@x][@y].point_for(@pvm)
+      ex, ey = @groups_matrix[@x][@y].point_for(@pvm)
       @event_handler.step_begin(self, ex, ey)
       while i < 8 do
         nx, ny = @pvm.next_possible(ex, ey)
@@ -63,7 +62,7 @@ module RPiet
           i += 1
           @pvm.orient_elsewhere(i)
 
-          ex, ey = @groups[@x][@y].point_for(@pvm) if !seen_white
+          ex, ey = @groups_matrix[@x][@y].point_for(@pvm) if !seen_white
           @event_handler.trying_again(self, ex, ey)
         elsif @pixels[nx][ny] == RPiet::Color::WHITE
           if !seen_white
@@ -88,8 +87,12 @@ module RPiet
       false
     end
 
-    # always look up, left, or make new group
-    def calculate_groups(groups)
+    ##
+    # With grid of pixels start in upper left corner processing each pixel
+    # rightwards and downwards. As you encounter a pixel look up and left to
+    # see if it is a new color or part of an existing neighboring group.
+    def calculate_groups
+      groups = alloc_matrix { |i, j| 0 }
       all_groups = []
       walk_matrix(groups) do |i, j|
         rgb = @pixels[i][j]
@@ -113,7 +116,7 @@ module RPiet
         end
       end
       all_groups.each { |group| group.finish }
-      groups
+      return groups, all_groups
     end
 
     def alloc_matrix

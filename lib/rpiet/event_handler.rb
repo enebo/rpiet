@@ -69,8 +69,13 @@ module RPiet
     class Graphical < SimpleAsciiOutput
       def initialized(runtime)
         require 'rpiet/debugger/debugger'
-        @debugger = RPiet::Debugger.new(runtime)
-        @debugger.bootstrap
+        $rpiet = runtime
+        $event_handler = self
+        Thread.new { RPiet::Debugger.launch }.run
+      end
+
+      def debugger_started(debugger)
+        @debugger = debugger
       end
 
       def step_begin(runtime, ex, ey)

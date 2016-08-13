@@ -5,6 +5,7 @@ module RPiet
   class Group
     include RPiet::Direction
     attr_reader :rgb, :points
+    attr_reader :rl, :rr, :lr, :ll, :ul, :ur, :dr, :dl
 
     def initialize(rgb, point)
       @rgb, @points = rgb, []
