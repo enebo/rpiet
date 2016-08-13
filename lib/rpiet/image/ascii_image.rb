@@ -4,7 +4,7 @@ module RPiet
   module Image
     class AsciiImage < RPiet::Image::Image
       def initialize(string, codel_size=1)
-        @codel_size = codel_size
+        super codel_size
         lines = string.split("\n")
         @data = []
         lines.each do |line|

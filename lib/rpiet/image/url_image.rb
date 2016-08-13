@@ -11,8 +11,7 @@ module RPiet
       def initialize(file, codel_size=1)
         super(codel_size)
         image = image(file)
-        @width, @height = image.width, image.height
-        @raw = image.pixel_reader
+        @width, @height, @raw = image.width, image.height, image.pixel_reader
       end
 
       def raw_pixel(x, y)
