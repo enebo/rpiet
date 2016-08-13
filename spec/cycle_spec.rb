@@ -7,50 +7,50 @@ end
 
 describe "RPiet::Cycle" do
   it "can do cycle addition" do
-    (A::Letter::A + A::Letter::A).should == A::Letter::A
-    (A::Letter::A + A::Letter::B).should == A::Letter::B
-    (A::Letter::A + A::Letter::C).should == A::Letter::C
-    (A::Letter::B + A::Letter::A).should == A::Letter::B
-    (A::Letter::B + A::Letter::B).should == A::Letter::C
-    (A::Letter::B + A::Letter::C).should == A::Letter::A
-    (A::Letter::C + A::Letter::A).should == A::Letter::C
-    (A::Letter::C + A::Letter::B).should == A::Letter::A
-    (A::Letter::C + A::Letter::C).should == A::Letter::B
+    expect(A::Letter::A + A::Letter::A).to eq(A::Letter::A)
+    expect(A::Letter::A + A::Letter::B).to eq(A::Letter::B)
+    expect(A::Letter::A + A::Letter::C).to eq(A::Letter::C)
+    expect(A::Letter::B + A::Letter::A).to eq(A::Letter::B)
+    expect(A::Letter::B + A::Letter::B).to eq(A::Letter::C)
+    expect(A::Letter::B + A::Letter::C).to eq(A::Letter::A)
+    expect(A::Letter::C + A::Letter::A).to eq(A::Letter::C)
+    expect(A::Letter::C + A::Letter::B).to eq(A::Letter::A)
+    expect(A::Letter::C + A::Letter::C).to eq(A::Letter::B)
   end
 
   it "can do cycle subtraction" do
-    (A::Letter::A - A::Letter::A).should == A::Letter::A
-    (A::Letter::A - A::Letter::B).should == A::Letter::C
-    (A::Letter::A - A::Letter::C).should == A::Letter::B
-    (A::Letter::B - A::Letter::A).should == A::Letter::B
-    (A::Letter::B - A::Letter::B).should == A::Letter::A
-    (A::Letter::B - A::Letter::C).should == A::Letter::C
-    (A::Letter::C - A::Letter::A).should == A::Letter::C
-    (A::Letter::C - A::Letter::B).should == A::Letter::B
-    (A::Letter::C - A::Letter::C).should == A::Letter::A
+    expect(A::Letter::A - A::Letter::A).to eq(A::Letter::A)
+    expect(A::Letter::A - A::Letter::B).to eq(A::Letter::C)
+    expect(A::Letter::A - A::Letter::C).to eq(A::Letter::B)
+    expect(A::Letter::B - A::Letter::A).to eq(A::Letter::B)
+    expect(A::Letter::B - A::Letter::B).to eq(A::Letter::A)
+    expect(A::Letter::B - A::Letter::C).to eq(A::Letter::C)
+    expect(A::Letter::C - A::Letter::A).to eq(A::Letter::C)
+    expect(A::Letter::C - A::Letter::B).to eq(A::Letter::B)
+    expect(A::Letter::C - A::Letter::C).to eq(A::Letter::A)
   end
 
   it "can increment" do
-    A::Letter::A.incr.should == A::Letter::B
-    A::Letter::B.incr.should == A::Letter::C
-    A::Letter::C.incr.should == A::Letter::A
+    expect(A::Letter::A.incr).to eq(A::Letter::B)
+    expect(A::Letter::B.incr).to eq(A::Letter::C)
+    expect(A::Letter::C.incr).to eq(A::Letter::A)
   end
 
   it "can decrement" do
-    A::Letter::A.decr.should == A::Letter::C
-    A::Letter::B.decr.should == A::Letter::A
-    A::Letter::C.decr.should == A::Letter::B
+    expect(A::Letter::A.decr).to eq(A::Letter::C)
+    expect(A::Letter::B.decr).to eq(A::Letter::A)
+    expect(A::Letter::C.decr).to eq(A::Letter::B)
   end
 
   it "can calculate deltas" do
-    A::Letter::A.delta(A::Letter::A).should == 0
-    A::Letter::A.delta(A::Letter::B).should == 2
-    A::Letter::A.delta(A::Letter::C).should == 1
-    A::Letter::B.delta(A::Letter::A).should == 1
-    A::Letter::B.delta(A::Letter::B).should == 0
-    A::Letter::B.delta(A::Letter::C).should == 2
-    A::Letter::C.delta(A::Letter::A).should == 2
-    A::Letter::C.delta(A::Letter::B).should == 1
-    A::Letter::C.delta(A::Letter::C).should == 0
+    expect(A::Letter::A.delta(A::Letter::A)).to eq(0)
+    expect(A::Letter::A.delta(A::Letter::B)).to eq(2)
+    expect(A::Letter::A.delta(A::Letter::C)).to eq(1)
+    expect(A::Letter::B.delta(A::Letter::A)).to eq(1)
+    expect(A::Letter::B.delta(A::Letter::B)).to eq(0)
+    expect(A::Letter::B.delta(A::Letter::C)).to eq(2)
+    expect(A::Letter::C.delta(A::Letter::A)).to eq(2)
+    expect(A::Letter::C.delta(A::Letter::B)).to eq(1)
+    expect(A::Letter::C.delta(A::Letter::C)).to eq(0)
   end
 end

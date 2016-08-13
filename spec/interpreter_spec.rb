@@ -7,8 +7,8 @@ describe "RPiet::Interpreter" do
     interpreter = RPiet::Interpreter.new(source)
 
     interpreter.next_step
-    interpreter.pvm.stack.should == [2]
+    expect(interpreter.pvm.stack).to eq [2]
     interpreter.next_step
-    interpreter.pvm.stack.should == []
+    expect(interpreter.pvm.stack).to eq []
   end
 end

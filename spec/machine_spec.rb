@@ -10,7 +10,7 @@ describe "RPiet::Machine" do
     end
 
     machine.roll
-    machine.stack.should == [115, 101, 100]
+    expect(machine.stack).to eq [115, 101, 100]
 
     [3, 1].each do |value|
       machine.block_value = value
@@ -18,6 +18,6 @@ describe "RPiet::Machine" do
     end
 
     machine.roll
-    machine.stack.should == [100, 115, 101]
+    expect(machine.stack).to eq [100, 115, 101]
   end
 end

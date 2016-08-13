@@ -8,13 +8,12 @@ module RPiet
     attr_reader :pvm, :source, :pixels, :groups, :x, :y, :step, :rows, :cols
 
     def initialize(source, event_handler=RPiet::Logger::NoOutput.new)
-      @thread = Thread.current
+      @interpreter_thread = Thread.current
       @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
       @source, @event_handler = source, event_handler
       @rows, @cols = @source.size
       @pixels = alloc_matrix { |i, j| @source.pixel(i, j)}
       @groups_matrix, @groups = calculate_groups
-      pause
       @event_handler.initialized(self)
     end
 
@@ -24,12 +23,12 @@ module RPiet
 
     def resume
       @paused = false
-      @thread.run
+      @interpreter_thread.run
     end
 
     def advance
       @paused = true
-      @thread.run
+      @interpreter_thread.run
     end
 
     def run

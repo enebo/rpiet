@@ -24,34 +24,34 @@ describe "Group" do
   end
 
   it "knows its size" do
-    @group.size.should == 30
+    expect(@group.size).to eq(30)
   end
 
   it "can pick the right points" do
-    @group.point_for(@pvm).should == [8, 5] # dp: RIGHT cc: LEFT  -> UR
+    expect(@group.point_for(@pvm)).to eq([8, 5]) # dp: RIGHT cc: LEFT  -> UR
     @pvm.cc.switch! # LEFT -> RIGHT
-    @group.point_for(@pvm).should == [8, 6] # dp: RIGHT cc: RIGHT  -> LR
+    expect(@group.point_for(@pvm)).to eq([8, 6])# dp: RIGHT cc: RIGHT  -> LR
     @pvm.dp.rotate! # dp: RIGHT -> DOWN
     @pvm.cc.switch! # cc: RIGHT -> LEFT
-    @group.point_for(@pvm).should == [0, 7] # dp: DOWN cc: LEFT -> LR
+    expect(@group.point_for(@pvm)).to eq([0, 7]) # dp: DOWN cc: LEFT -> LR
     @pvm.cc.switch! # cc: LEFT -> RIGHT
-    @group.point_for(@pvm).should == [0, 7] # dp: DOWN cc: RIGHT -> LL
+    expect(@group.point_for(@pvm)).to eq([0, 7]) # dp: DOWN cc: RIGHT -> LL
     @pvm.dp.rotate! # dp: DOWN -> LEFT
     @pvm.cc.switch! # cc: RIGHT -> LEFT
-    @group.point_for(@pvm).should == [0, 7] # dp: LEFT cc: LEFT -> LL
+    expect(@group.point_for(@pvm)).to eq([0, 7]) # dp: LEFT cc: LEFT -> LL
     @pvm.cc.switch! # cc: LEFT -> RIGHT
-    @group.point_for(@pvm).should == [0, 3] # dp: LEFT cc: RIGHT -> UL
+    expect(@group.point_for(@pvm)).to eq([0, 3]) # dp: LEFT cc: RIGHT -> UL
     @pvm.dp.rotate! # dp: LEFT -> UP
-    @pvm.cc.switch! 
-    @group.point_for(@pvm).should == [0, 3] # dp: UP cc: LEFT -> UL
+    @pvm.cc.switch!
+    expect(@group.point_for(@pvm)).to eq([0, 3]) # dp: UP cc: LEFT -> UL
     @pvm.cc.switch! # cc: LEFT -> RIGHT
-    @group.point_for(@pvm).should == [4, 3] # dp: UP cc: RIGHT -> UR
+    expect(@group.point_for(@pvm)).to eq([4, 3]) # dp: UP cc: RIGHT -> UR
 
     # Since last group only has single wide bottom let's try another
     @pvm.cc.switch! # cc: RIGHT -> LEFT
     @pvm.dp.rotate! 2 # dp: UP -> DOWN
-    @group2.point_for(@pvm).should == [7, 3] # dp: DOWN cc: LEFT -> LR
+    expect(@group2.point_for(@pvm)).to eq([7, 3]) # dp: DOWN cc: LEFT -> LR
     @pvm.cc.switch! # cc: RIGHT -> LEFT
-    @group2.point_for(@pvm).should == [6, 3] # dp: DOWN cc: RIGHT -> LL
+    expect(@group2.point_for(@pvm)).to eq([6, 3]) # dp: DOWN cc: RIGHT -> LL
   end
 end
