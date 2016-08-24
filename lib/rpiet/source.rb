@@ -8,7 +8,7 @@ module RPiet
     attr_reader :rows, :cols, :groups, :pixels
 
     def initialize(image)
-      @rows, @cols = image.size
+      @cols, @rows = image.size
       @pixels = alloc_matrix { |i, j| image.pixel(i, j)}
       @groups_matrix, @groups = calculate_groups
     end
@@ -42,7 +42,13 @@ module RPiet
           up << [i, j]
           groups[i][j] = up
           # disjoint groups to merge
-          up.merge(groups, left) if left && left != up && left.rgb == rgb
+          if left && left != up && left.rgb == rgb
+            up.merge(groups, left)
+            left.points.each do |x, y|
+              groups[x][y] = up
+              all_groups.delete left
+            end
+          end
         end
 
         if groups[i][j] == 0 && left && left.rgb == rgb
@@ -60,14 +66,14 @@ module RPiet
     end
 
     private def alloc_matrix
-      Array.new(@rows) { Array.new(@cols) {nil} }.tap do |matrix|
+      Array.new(@cols) { Array.new(@rows) {nil} }.tap do |matrix|
         walk_matrix {|i, j| matrix[i][j] = yield i, j }
       end
     end
 
     private def walk_matrix
-      0.upto(@rows-1) do |i|
-        0.upto(@cols-1) do |j|
+      0.upto(@cols-1) do |i|
+        0.upto(@rows-1) do |j|
           yield i, j
         end
       end
