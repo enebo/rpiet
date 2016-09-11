@@ -5,13 +5,17 @@ module RPiet
   class Group
     include RPiet::Direction
     attr_reader :rgb, :points
+
+    # represents significant corners in a group based on the dp and cc.
+    # First letter is the dp: {r-ight, l-eft, d-own, u-p}.
+    # The second letter is the codel chooser: {l-eft, r-ight}.
     attr_reader :rl, :rr, :lr, :ll, :ul, :ur, :dr, :dl
 
-    def initialize(rgb, point)
+    def initialize(rgb, *points)
       @rgb, @points = rgb, []
       @max = { RIGHT => [], LEFT => [], UP => [], DOWN => [] }
 
-      self << point
+      points.each { |point| self << point}
     end
 
     def point_for(pvm)
@@ -40,7 +44,7 @@ module RPiet
       @points.include? point
     end
 
-    def finish
+    def calculate_corners
       @rl, @rr = ends(@max[RIGHT].sort { |a, b| a[1] <=> b[1] })
       @lr, @ll = ends(@max[LEFT].sort { |a, b| a[1] <=> b[1] })
       @ul, @ur = ends(@max[UP].sort { |a, b| a[0] <=> b[0] })

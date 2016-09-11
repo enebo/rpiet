@@ -1,57 +1,74 @@
+require_relative 'spec_helper'
 require 'rpiet/group'
-require 'rpiet/machine'
+
+include SpecHelper
 
 describe "Group" do
-  before do
-    @group = RPiet::Group.new('0x0000c0', [0, 3])
-    [[0, 4], [0, 5], [0, 6], [0, 7], [1, 3], [1, 4], [1, 5], 
-     [1, 6], [2, 3], [2, 4], [2, 5], [2, 6], [3, 3], [3, 4], [3, 5], [3, 6], 
-     [4, 3], [4, 4], [4, 5], [4, 6], [5, 4], [6, 4], [6, 5], [6, 6], [7, 4], 
-     [7, 5], [7, 6], [8, 5], [8, 6]].each do |point|
-      @group << point
-    end
-    @group.finish
+  SQUARE = <<-EOS
+.###.
+.###.
+.###.
+  EOS
 
-    @group2 = RPiet::Group.new('0xff0000', [7, 0])
-    
-    [[7, 1], [6, 1], [6, 2], [5, 2], [6, 3], [7, 2], 
-     [7, 3], [8, 0], [8, 1]].each do |point|
-      @group2 << point
-    end
-    @group2.finish
+  WACKY = <<-EOS
+.#.#.
+#####
+.#.#.
+  EOS
 
-    @pvm = RPiet::Machine.new
+  HOOKY = <<-EOS
+.#.#.#
+######
+.#.#..
+  EOS
+
+
+  let(:square_group) { create_group('0x0000c0', SQUARE) }
+  let(:wacky_group) { create_group('0x000000', WACKY) }
+  let(:hooky_group) { create_group('0x0000ff', HOOKY) }
+
+  it "knows its rgb" do
+    expect(square_group.rgb).to eq '0x0000c0'
+    expect(wacky_group.rgb).to eq '0x000000'
+    expect(hooky_group.rgb).to eq '0x0000ff'
   end
 
   it "knows its size" do
-    expect(@group.size).to eq(30)
+    expect(square_group.size).to eq(9)
+    expect(wacky_group.size).to eq(9)
+    expect(hooky_group.size).to eq(11)
   end
 
-  it "can pick the right points" do
-    expect(@group.point_for(@pvm)).to eq([8, 5]) # dp: RIGHT cc: LEFT  -> UR
-    @pvm.cc.switch! # LEFT -> RIGHT
-    expect(@group.point_for(@pvm)).to eq([8, 6])# dp: RIGHT cc: RIGHT  -> LR
-    @pvm.dp.rotate! # dp: RIGHT -> DOWN
-    @pvm.cc.switch! # cc: RIGHT -> LEFT
-    expect(@group.point_for(@pvm)).to eq([0, 7]) # dp: DOWN cc: LEFT -> LR
-    @pvm.cc.switch! # cc: LEFT -> RIGHT
-    expect(@group.point_for(@pvm)).to eq([0, 7]) # dp: DOWN cc: RIGHT -> LL
-    @pvm.dp.rotate! # dp: DOWN -> LEFT
-    @pvm.cc.switch! # cc: RIGHT -> LEFT
-    expect(@group.point_for(@pvm)).to eq([0, 7]) # dp: LEFT cc: LEFT -> LL
-    @pvm.cc.switch! # cc: LEFT -> RIGHT
-    expect(@group.point_for(@pvm)).to eq([0, 3]) # dp: LEFT cc: RIGHT -> UL
-    @pvm.dp.rotate! # dp: LEFT -> UP
-    @pvm.cc.switch!
-    expect(@group.point_for(@pvm)).to eq([0, 3]) # dp: UP cc: LEFT -> UL
-    @pvm.cc.switch! # cc: LEFT -> RIGHT
-    expect(@group.point_for(@pvm)).to eq([4, 3]) # dp: UP cc: RIGHT -> UR
+  it 'picks the right points (wacky)' do
+    expect(wacky_group.rr).to eq([4,1])
+    expect(wacky_group.rl).to eq([4,1])
+    expect(wacky_group.lr).to eq([0,1])
+    expect(wacky_group.ll).to eq([0,1])
+    expect(wacky_group.dr).to eq([1,2])
+    expect(wacky_group.dl).to eq([3,2])
+    expect(wacky_group.ur).to eq([3,0])
+    expect(wacky_group.ul).to eq([1,0])
+  end
 
-    # Since last group only has single wide bottom let's try another
-    @pvm.cc.switch! # cc: RIGHT -> LEFT
-    @pvm.dp.rotate! 2 # dp: UP -> DOWN
-    expect(@group2.point_for(@pvm)).to eq([7, 3]) # dp: DOWN cc: LEFT -> LR
-    @pvm.cc.switch! # cc: RIGHT -> LEFT
-    expect(@group2.point_for(@pvm)).to eq([6, 3]) # dp: DOWN cc: RIGHT -> LL
+  it 'picks the right points (simple)' do
+    expect(square_group.rr).to eq([3,2])
+    expect(square_group.rl).to eq([3,0])
+    expect(square_group.lr).to eq([1,0])
+    expect(square_group.ll).to eq([1,2])
+    expect(square_group.dr).to eq([1,2])
+    expect(square_group.dl).to eq([3,2])
+    expect(square_group.ur).to eq([3,0])
+    expect(square_group.ul).to eq([1,0])
+  end
+
+  it 'picks the right points (hooky)' do
+    expect(hooky_group.rr).to eq([5,1])
+    expect(hooky_group.rl).to eq([5,0])
+    expect(hooky_group.lr).to eq([0,1])
+    expect(hooky_group.ll).to eq([0,1])
+    expect(hooky_group.dr).to eq([1,2])
+    expect(hooky_group.dl).to eq([3,2])
+    expect(hooky_group.ur).to eq([5,0])
+    expect(hooky_group.ul).to eq([1,0])
   end
 end

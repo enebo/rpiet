@@ -61,7 +61,7 @@ module RPiet
           all_groups << groups[i][j]
         end
       end
-      all_groups.each { |group| group.finish }
+      all_groups.each { |group| group.calculate_corners }
       return groups, all_groups
     end
 
