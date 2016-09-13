@@ -23,6 +23,10 @@ module RPiet
     end
     alias :inspect :to_s
 
+    def self.color_for(rgb_hex)
+      RGB[rgb_hex]
+    end
+
     RGB_WHITE, WHITE = '0xffffff', Color.new(LIGHTNESS::NORMAL, 'white', '0xffffff')
     RGB_BLACK, BLACK = '0x000000', Color.new(LIGHTNESS::NORMAL, 'black', '0x000000')
 

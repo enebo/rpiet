@@ -1,5 +1,6 @@
 require_relative 'spec_helper'
 require 'rpiet/group'
+require 'rpiet/color'
 
 include SpecHelper
 
@@ -23,14 +24,17 @@ describe "Group" do
   EOS
 
 
-  let(:square_group) { create_group('0x0000c0', SQUARE) }
-  let(:wacky_group) { create_group('0x000000', WACKY) }
-  let(:hooky_group) { create_group('0x0000ff', HOOKY) }
+  let(:light_cyan) { RPiet::Color.color_for('0x0000c0') }
+  let(:black) { RPiet::Color.color_for('0x000000') }
+  let(:blue) { RPiet::Color.color_for('0x0000ff') }
+  let(:square_group) { create_group(light_cyan, SQUARE) }
+  let(:wacky_group) { create_group(black, WACKY) }
+  let(:hooky_group) { create_group(blue, HOOKY) }
 
-  it "knows its rgb" do
-    expect(square_group.rgb).to eq '0x0000c0'
-    expect(wacky_group.rgb).to eq '0x000000'
-    expect(hooky_group.rgb).to eq '0x0000ff'
+  it "knows its color" do
+    expect(square_group.color).to eq light_cyan
+    expect(wacky_group.color).to eq black
+    expect(hooky_group.color).to eq blue
   end
 
   it "knows its size" do

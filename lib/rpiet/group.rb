@@ -4,15 +4,15 @@ require 'rpiet/codel_chooser'
 module RPiet
   class Group
     include RPiet::Direction
-    attr_reader :rgb, :points
+    attr_reader :color, :points
 
     # represents significant corners in a group based on the dp and cc.
     # First letter is the dp: {r-ight, l-eft, d-own, u-p}.
     # The second letter is the codel chooser: {l-eft, r-ight}.
     attr_reader :rl, :rr, :lr, :ll, :ul, :ur, :dr, :dl
 
-    def initialize(rgb, *points)
-      @rgb, @points = rgb, []
+    def initialize(color, *points)
+      @color, @points = color, []
       @max = { RIGHT => [], LEFT => [], UP => [], DOWN => [] }
 
       points.each { |point| self << point}
@@ -104,7 +104,7 @@ module RPiet
     end
 
     def inspect
-      "Group #{rgb}: Size: #{size} Points: #{@points.inspect}\n" +
+      "Group #{color}: Size: #{size} Points: #{@points.inspect}\n" +
       "rr #@rr rl #@rl lr #@lr ll #@ll ur #@ur ul #@ul dr #@dr dl #@dl"
     end
     alias :to_s :inspect

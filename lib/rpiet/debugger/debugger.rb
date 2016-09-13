@@ -105,7 +105,7 @@ module RPiet
             group do
               pixels.each_with_index do |row, i|
                 row.each_with_index do |piet_pixel, j|
-                  color = Java::javafx.scene.paint.Color.web(piet_pixel.rgb)
+                  color = Java::javafx.scene.paint.Color.web(piet_pixel.color)
                   ident = "#{i}x#{j}"
                   rectangle(i*size, j*size, size-1, size-1, fill: color, 
                             arc_width: arc_n, arc_height: arc_n, 

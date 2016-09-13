@@ -36,4 +36,7 @@ ng lg lg lg ++
     expect(source1.valid?(4, 4)).to be_truthy  # white codel
   end
 
+  it "#group_at knows which group it is associated with" do
+    expect(source1.group_at(0, 0).color.to_s).to eq("blue")
+  end
 end

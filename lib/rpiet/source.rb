@@ -32,37 +32,37 @@ module RPiet
     # rightwards and downwards. As you encounter a pixel look up and left to
     # see if it is a new color or part of an existing neighboring group.
     def calculate_groups
-      groups = alloc_matrix { |i, j| 0 }
-      all_groups = []
+      groups_matrix = alloc_matrix { |i, j| 0 }
+      group = []
       walk_matrix do |i, j|
-        rgb = @pixels[i][j]
-        up = j-1 >= 0 ? groups[i][j-1] : nil
-        left = i-1 >= 0 ? groups[i-1][j] : nil
-        if up && up.rgb == rgb
+        color = @pixels[i][j]
+        up = j-1 >= 0 ? groups_matrix[i][j-1] : nil
+        left = i-1 >= 0 ? groups_matrix[i-1][j] : nil
+        if up && up.color == color
           up << [i, j]
-          groups[i][j] = up
+          groups_matrix[i][j] = up
           # disjoint groups to merge
-          if left && left != up && left.rgb == rgb
-            up.merge(groups, left)
+          if left && left != up && left.color == color
+            up.merge(groups_matrix, left)
             left.points.each do |x, y|
-              groups[x][y] = up
-              all_groups.delete left
+              groups_matrix[x][y] = up
+              group.delete left
             end
           end
         end
 
-        if groups[i][j] == 0 && left && left.rgb == rgb
+        if groups_matrix[i][j] == 0 && left && left.color == color
           left << [i, j]
-          groups[i][j] = left
+          groups_matrix[i][j] = left
         end
 
-        if groups[i][j] == 0
-          groups[i][j] = RPiet::Group.new(rgb, [i, j])
-          all_groups << groups[i][j]
+        if groups_matrix[i][j] == 0  # Create new group for first codel found
+          groups_matrix[i][j] = RPiet::Group.new(color, [i, j])
+          group << groups_matrix[i][j]
         end
       end
-      all_groups.each { |group| group.calculate_corners }
-      return groups, all_groups
+      group.each { |group| group.calculate_corners }
+      return groups_matrix, group
     end
 
     private def alloc_matrix

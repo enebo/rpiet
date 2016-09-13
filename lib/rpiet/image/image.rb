@@ -15,11 +15,7 @@ module RPiet
 
       def pixel(x, y)
         r,g,b = raw_pixel(x * @codel_size, y * @codel_size)
-        color_for(format "0x%02x%02x%02x" % [r,g,b])
-      end
-
-      def color_for(rgb_hex)
-        RPiet::Color::RGB[rgb_hex]
+        RPiet::Color.color_for(format "0x%02x%02x%02x" % [r,g,b])
       end
 
       def ascii(group = [])
