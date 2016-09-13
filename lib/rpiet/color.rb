@@ -33,25 +33,32 @@ module RPiet
     class << WHITE; def to_initial; '..'; end; end
     class << BLACK; def to_initial; '++'; end; end
 
+    LIGHT_RED = Color.new(LIGHTNESS::LIGHT, HUE::RED, '0xffc0c0')
+    LIGHT_YELLOW = Color.new(LIGHTNESS::LIGHT, HUE::YELLOW, '0xffffc0')
+    LIGHT_GREEN = Color.new(LIGHTNESS::LIGHT, HUE::GREEN, '0xc0ffc0')
+    LIGHT_CYAN = Color.new(LIGHTNESS::LIGHT, HUE::CYAN, '0xc0ffff')
+    LIGHT_BLUE = Color.new(LIGHTNESS::LIGHT, HUE::BLUE, '0xc0c0ff')
+    LIGHT_MAGENTA = Color.new(LIGHTNESS::LIGHT, HUE::MAGENTA, '0xffc0ff')
+    RED = Color.new(LIGHTNESS::NORMAL, HUE::RED, '0xff0000')
+    YELLOW = Color.new(LIGHTNESS::NORMAL, HUE::YELLOW, '0xffff00')
+    GREEN = Color.new(LIGHTNESS::NORMAL, HUE::GREEN, '0x00ff00')
+    CYAN = Color.new(LIGHTNESS::NORMAL, HUE::CYAN, '0x00ffff')
+    BLUE = Color.new(LIGHTNESS::NORMAL, HUE::BLUE, '0x0000ff')
+    MAGENTA = Color.new(LIGHTNESS::NORMAL, HUE::MAGENTA, '0xff00ff')
+    DARK_RED = Color.new(LIGHTNESS::DARK, HUE::RED, '0xc00000')
+    DARK_YELLOW = Color.new(LIGHTNESS::DARK, HUE::YELLOW, '0xc0c000')
+    DARK_GREEN = Color.new(LIGHTNESS::DARK, HUE::GREEN, '0x00c000')
+    DARK_CYAN = Color.new(LIGHTNESS::DARK, HUE::CYAN, '0x00c0c0')
+    DARK_BLUE = Color.new(LIGHTNESS::DARK, HUE::BLUE, '0x0000c0')
+    DARK_MAGENTA = Color.new(LIGHTNESS::DARK, HUE::MAGENTA, '0xc000c0')
+
     RGB = {
-      '0xffc0c0' => Color.new(LIGHTNESS::LIGHT, HUE::RED, '0xffc0c0'),
-      '0xffffc0' => Color.new(LIGHTNESS::LIGHT, HUE::YELLOW, '0xffffc0'),
-      '0xc0ffc0' => Color.new(LIGHTNESS::LIGHT, HUE::GREEN, '0xc0ffc0'),
-      '0xc0ffff' => Color.new(LIGHTNESS::LIGHT, HUE::CYAN, '0xc0ffff'),
-      '0xc0c0ff' => Color.new(LIGHTNESS::LIGHT, HUE::BLUE, '0xc0c0ff'),
-      '0xffc0ff' => Color.new(LIGHTNESS::LIGHT, HUE::MAGENTA, '0xffc0ff'),
-      '0xff0000' => Color.new(LIGHTNESS::NORMAL, HUE::RED, '0xff0000'),
-      '0xffff00' => Color.new(LIGHTNESS::NORMAL, HUE::YELLOW, '0xffff00'),
-      '0x00ff00' => Color.new(LIGHTNESS::NORMAL, HUE::GREEN, '0x00ff00'),
-      '0x00ffff' => Color.new(LIGHTNESS::NORMAL, HUE::CYAN, '0x00ffff'),
-      '0x0000ff' => Color.new(LIGHTNESS::NORMAL, HUE::BLUE, '0x0000ff'),
-      '0xff00ff' => Color.new(LIGHTNESS::NORMAL, HUE::MAGENTA, '0xff00ff'),
-      '0xc00000' => Color.new(LIGHTNESS::DARK, HUE::RED, '0xc00000'),
-      '0xc0c000' => Color.new(LIGHTNESS::DARK, HUE::YELLOW, '0xc0c000'),
-      '0x00c000' => Color.new(LIGHTNESS::DARK, HUE::GREEN, '0x00c000'),
-      '0x00c0c0' => Color.new(LIGHTNESS::DARK, HUE::CYAN, '0x00c0c0'),
-      '0x0000c0' => Color.new(LIGHTNESS::DARK, HUE::BLUE, '0x0000c0'),
-      '0xc000c0' => Color.new(LIGHTNESS::DARK, HUE::MAGENTA, '0xc000c0'),
+      '0xffc0c0' => LIGHT_RED, '0xffffc0' => LIGHT_YELLOW, '0xc0ffc0' => LIGHT_GREEN,
+      '0xc0ffff' => LIGHT_CYAN, '0xc0c0ff' => LIGHT_BLUE, '0xffc0ff' => LIGHT_MAGENTA,
+      '0xff0000' => RED, '0xffff00' => YELLOW, '0x00ff00' => GREEN,
+      '0x00ffff' => CYAN, '0x0000ff' => BLUE, '0xff00ff' => MAGENTA,
+      '0xc00000' => DARK_RED, '0xc0c000' => DARK_YELLOW, '0x00c000' => DARK_GREEN,
+      '0x00c0c0' => DARK_CYAN, '0x0000c0' => DARK_BLUE, '0xc000c0' => DARK_MAGENTA,
       RGB_WHITE => WHITE,
       RGB_BLACK => BLACK
     }

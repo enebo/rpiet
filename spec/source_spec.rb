@@ -1,5 +1,6 @@
 require 'rpiet/source'
 require 'rpiet/image/ascii_image'
+require 'rpiet/color'
 
 describe "RPiet::Source" do
   let(:image) do
@@ -37,6 +38,12 @@ ng lg lg lg ++
   end
 
   it "#group_at knows which group it is associated with" do
-    expect(source1.group_at(0, 0).color.to_s).to eq("blue")
+    expect(source1.group_at(0, 0).color).to eq(RPiet::Color::BLUE)
+    expect(source1.group_at(1, 0).color).to eq(RPiet::Color::DARK_BLUE)
+    expect(source1.group_at(2, 0).color).to eq(RPiet::Color::DARK_BLUE)
+    expect(source1.group_at(4, 0).color).to eq(RPiet::Color::LIGHT_YELLOW)
+    expect(source1.group_at(4, 4).color).to eq(RPiet::Color::WHITE)
+    expect(source1.group_at(3, 5).color).to eq(RPiet::Color::LIGHT_GREEN)
+    expect(source1.group_at(4, 5).color).to eq(RPiet::Color::BLACK)
   end
 end
