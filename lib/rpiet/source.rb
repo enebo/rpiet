@@ -19,7 +19,7 @@ module RPiet
     ##
     # Is this point on the image and not black?
     def valid?(x, y)
-      x >= 0 && x < @rows && y >= 0 && y < @cols &&
+      x >= 0 && x < @cols && y >= 0 && y < @rows &&
           @pixels[x][y] != RPiet::Color::BLACK
     end
 
