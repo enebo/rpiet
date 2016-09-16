@@ -37,3 +37,4 @@ else
 end
 image = type.new(filename, codel_size)
 RPiet::Interpreter.new(image, log.new).run
+exit 0
