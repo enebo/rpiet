@@ -5,10 +5,11 @@ require_relative 'image/image'
 
 module RPiet
   class Source
-    attr_reader :rows, :cols, :groups, :pixels
+    attr_reader :rows, :cols, :groups, :pixels, :codel_size
 
     def initialize(image)
       @cols, @rows = image.size
+      @codel_size = image.codel_size
       @pixels = alloc_matrix { |i, j| image.pixel(i, j)}
       @groups_matrix, @groups = calculate_groups
     end

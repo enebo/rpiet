@@ -3,7 +3,7 @@ require 'rpiet/image/ascii_image'
 require 'rpiet/color'
 
 describe "RPiet::Source" do
-  let(:image) do
+  let(:image1) do
     RPiet::Image::AsciiImage.new <<-EOS
 nb db db db ly
 nb db db ly ly
@@ -14,12 +14,32 @@ ng lg lg lg ++
   EOS
   end
 
-  let(:source1) { RPiet::Source.new image }
+  let(:image2) do
+    RPiet::Image::AsciiImage.new <<-EOS, 2
+db db ly ly
+db db ly ly
+++ ++ ly ly
+++ ++ ly ly
+++ ++ ly ly
+++ ++ ly ly
+    EOS
+  end
+
+  let(:source1) { RPiet::Source.new image1 }
+  let(:source2) { RPiet::Source.new image2 }
 
   it "knows its size" do
     expect(source1.rows).to eq(6)
     expect(source1.cols).to eq(5)
     expect(source1.groups.size).to eq(7)
+    expect(source1.codel_size).to eq(1)
+  end
+
+  it "knows its size with different codel_size" do
+    expect(source2.rows).to eq(3)
+    expect(source2.cols).to eq(2)
+    expect(source2.groups.size).to eq(3)
+    expect(source2.codel_size).to eq(2)
   end
 
   it "#valid? knows invalid locations" do
