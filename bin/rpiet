@@ -26,15 +26,15 @@ opts.parse!(ARGV)
 opts.usage("You need to supply a source image filename.") unless ARGV.first
 
 filename = ARGV.first
-filename = 'file:' + ARGV.first if File.exist? filename
 
 if filename =~ /.txt/
-  require 'rpiet/image/ascii_image'  
-  type = RPiet::Image::AsciiImage
+  require 'rpiet/image/ascii_image'
+  image = RPiet::Image::AsciiImage.new(File.read(filename), codel_size)
 else
+  filename = 'file:' + ARGV.first if File.exist? filename
   require 'rpiet/image/url_image'
-  type = RPiet::Image::URLImage
+  image = RPiet::Image::URLImage.new(filename, codel_size)
 end
-image = type.new(filename, codel_size)
+
 RPiet::Interpreter.new(image, log.new).run
 exit 0
