@@ -36,6 +36,7 @@ module RPiet
 
       def initialized(runtime)
         dmesg "codel_size: #{runtime.source.codel_size}"
+        dmesg "size: #{runtime.source.cols}x#{runtime.source.rows}"
       end
 
       def step_begin(runtime, ex, ey)
