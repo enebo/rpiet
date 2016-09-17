@@ -18,6 +18,15 @@ module RPiet
         RPiet::Color.color_for(format "0x%02x%02x%02x" % [r,g,b])
       end
 
+      def each
+        w, h = size
+        h.times do |j|
+          w.times do |i|
+            yield i, j, pixel(i, j)
+          end
+        end
+      end
+
       def ascii(group = [])
         s = ''
         w, h = size

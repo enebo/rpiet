@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'rpiet/image/ascii_image'
+require 'image_voodoo'
+
+input_codel_size = 1
+output_codel_size = input_codel_size
+opts = OptionParser.new do |opts|
+  opts.on("-i", "--input-codel-size w", "size of input codel") { |w| input_codel_size = w.to_i }
+  opts.on("-o", "--output-odel-size w", "size of output codel") { |w| output_codel_size = w.to_i }
+end
+
+opts.parse!(ARGV)
+opts.usage("You need to supply a source image filename.") unless ARGV.first
+
+filename = ARGV.first
+
+image = RPiet::Image::AsciiImage.new(File.read(filename), input_codel_size)
+width, height = image.size
+
+canvas = ImageVoodoo.canvas(output_codel_size * width, output_codel_size * height, 'ffffff')
+
+image.each do |i, j, color|
+  canvas.rect i * output_codel_size, j * output_codel_size, output_codel_size, output_codel_size, color.rgb[2..-1]
+end
+
+canvas.save(File.basename(filename, ".txt") + ".png")
