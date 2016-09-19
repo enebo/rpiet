@@ -6,9 +6,11 @@ require 'image_voodoo'
 
 input_codel_size = 1
 output_codel_size = input_codel_size
+image_type = "png"
 opts = OptionParser.new do |opts|
   opts.on("-i", "--input-codel-size w", "size of input codel") { |w| input_codel_size = w.to_i }
   opts.on("-o", "--output-odel-size w", "size of output codel") { |w| output_codel_size = w.to_i }
+  opts.on("-t", "--image-type suffix", "image format") { |t| image_type = t }
 end
 
 opts.parse!(ARGV)
@@ -25,4 +27,4 @@ image.each do |i, j, color|
   canvas.rect i * output_codel_size, j * output_codel_size, output_codel_size, output_codel_size, color.rgb[2..-1]
 end
 
-canvas.save(File.basename(filename, ".txt") + ".png")
+canvas.save(File.basename(filename, ".txt") + "." + image_type)
