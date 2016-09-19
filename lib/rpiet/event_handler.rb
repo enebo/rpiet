@@ -72,6 +72,7 @@ module RPiet
         require 'rpiet/debugger/debugger'
         $rpiet = runtime
         $event_handler = self
+        runtime.pause
         Thread.new { RPiet::Debugger.launch }.run
       end
 

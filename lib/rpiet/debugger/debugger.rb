@@ -19,7 +19,7 @@ module RPiet
     end
 
     def calculate_pixels_per_codel
-      WINDOW_DIM / [@rpiet.rows, @rpiet.cols].max
+      WINDOW_DIM / [@rpiet.source.rows, @rpiet.source.cols].max
     end
     
     def break_point?(x,y)
@@ -28,7 +28,7 @@ module RPiet
 
     def highlight_candidate(runtime, x, y)
       # Replace with black edge in debugger later
-      if (x < 0 || y < 0 || y >= @rpiet.cols || x >= @rpiet.rows)
+      if x < 0 || y < 0 || y >= @rpiet.source.cols || x >= @rpiet.source.rows
         puts "OUT OF BOUNDS #{x} #{y}"
         return
       end
@@ -70,13 +70,13 @@ module RPiet
       $event_handler.debugger_started self
       @break_points = break_points = {}
       @stage = stage
-      pixels = @rpiet.pixels
+      pixels = @rpiet.source.pixels
       rpiet = @rpiet
       size = calculate_pixels_per_codel
       n = CODEL_DIM
       arc_n = size / 3
       stroke_width = size / 5
-      width, height = @rpiet.rows * size, @rpiet.cols * size + 90
+      width, height = @rpiet.source.rows * size, @rpiet.source.cols * size + 90
       with(stage, title: "RPiet", width: width, height: height) do
         layout_scene(NORMAL) do
           vbox do
@@ -105,7 +105,7 @@ module RPiet
             group do
               pixels.each_with_index do |row, i|
                 row.each_with_index do |piet_pixel, j|
-                  color = Java::javafx.scene.paint.Color.web(piet_pixel.color)
+                  color = Java::javafx.scene.paint.Color.web(piet_pixel.rgb)
                   ident = "#{i}x#{j}"
                   rectangle(i*size, j*size, size-1, size-1, fill: color, 
                             arc_width: arc_n, arc_height: arc_n, 
