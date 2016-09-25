@@ -69,11 +69,15 @@ module RPiet
 
     class Graphical < SimpleAsciiOutput
       def initialized(runtime)
-        require 'rpiet/debugger/debugger'
-        $rpiet = runtime
-        $event_handler = self
+        unless $event_handler
+          require 'rpiet/debugger/debugger'
+          $rpiet = runtime
+          $event_handler = self
+          Thread.new { RPiet::Debugger.launch }.run
+        else
+          @debugger.begin_session
+        end
         runtime.pause
-        Thread.new { RPiet::Debugger.launch }.run
       end
 
       def debugger_started(debugger)
@@ -88,8 +92,9 @@ module RPiet
       end
       alias :trying_again :step_begin
 
+      # edge of current group to potential entry point of next group (valid is if next is a valid group).
       def next_possible(runtime, edge_x, edge_y, next_x, next_y, valid)
-        @debugger.highlight_candidate(runtime, next_x, next_y, valid)
+        @debugger.highlight_candidate(runtime, edge_x, edge_y, next_x, next_y, valid)
       end
 
       def operation(runtime, operation)

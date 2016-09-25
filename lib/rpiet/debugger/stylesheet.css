@@ -22,5 +22,9 @@
     -fx-arc-width: 1;
     -fx-arc-width: 1;
     -fx-stroke-width: 0;
-    -fx-fill: #999999
+    -fx-fill: #999999;
+}
+
+#connector {
+    -fx-fill: #999999;
 }

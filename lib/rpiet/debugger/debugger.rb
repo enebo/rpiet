@@ -26,27 +26,37 @@ module RPiet
       @break_points["#{x}x#{y}"]
     end
 
-    def highlight_candidate(runtime, x, y, valid)
+    def update_connector(start_x, start_y, end_x, end_y)
       size = calculate_pixels_per_codel
-      @stage["#dir"].tap do |dir|
-        dir.rotate = runtime.pvm.dp.degrees
-        dir.translate_x = size/2 + (x + 1) * size
-        dir.translate_y = size/2 + (y + 1) * size
+      @stage["#connector"].tap do |connector|
+        connector.start_x = size/2 + (start_x + 1) * size
+        connector.start_y = size/2 + (start_y + 1) * size
+        connector.end_x = size/2 + (end_x + 1) * size
+        connector.end_y = size/2 + (end_y + 1) * size
       end
+    end
+
+    def begin_session
+      update_connector(-1, 0, 0, 0)
+    end
+
+    def highlight_candidate(runtime, edge_x, edge_y, next_x, next_y, valid)
+      size = calculate_pixels_per_codel
+      update_connector(edge_x, edge_y, next_x, next_y)
       # Replace with black edge in debugger later
-      if x < 0 || y < 0 || y >= @rpiet.source.cols || x >= @rpiet.source.rows
-        puts "OUT OF BOUNDS #{x} #{y}"
+      if next_x < 0 || next_y < 0 || next_x >= @rpiet.source.cols || next_y >= @rpiet.source.rows
+        puts "OUT OF BOUNDS #{next_x} #{next_y} #{@rpiet.source.rows} #{@rpiet.source.cols}"
         return
       end
       run_later do
-        @stage["\##{x}x#{y}"].stroke = CANDIDATE
+        @stage["\##{next_x}x#{next_y}"].stroke = CANDIDATE
         if @lastc_x
           color = break_point?(@lastc_x, @lastc_y) ? BREAKPOINT : NORMAL
           if color == NORMAL && @stage["\##{@lastc_x}x#{@lastc_y}"].stroke != CURRENT
             @stage["\##{@lastc_x}x#{@lastc_y}"].stroke = color
           end
         end
-        @lastc_x, @lastc_y = x, y
+        @lastc_x, @lastc_y = next_x, next_y
       end
     end
 
@@ -60,12 +70,6 @@ module RPiet
         @last_x, @last_y = x, y
         @stage["#dp"].rotate = runtime.pvm.dp.degrees
         @stage["#cc"].rotate = runtime.pvm.cc.degrees(runtime.pvm.dp)
-        size = calculate_pixels_per_codel
-        @stage["#dir"].tap do |dir|
-          dir.rotate = runtime.pvm.dp.degrees
-          dir.translate_x = size/2 + (x + 1) * size
-          dir.translate_y = size/2 + (y + 1) * size
-        end
       end
     end
 
@@ -109,7 +113,6 @@ module RPiet
 
     def start(stage)
       @rpiet = $rpiet # how does jrubyfx pass params before start is called?
-      $event_handler.debugger_started self
       @break_points = break_points = {}
       @stage = stage
       debugger = self
@@ -148,6 +151,10 @@ module RPiet
                    end)
               right(hbox do
                 get_style_class.add "controls"
+                button("restart") do
+                  get_style_class.add "control"
+                  set_on_action { |_| rpiet.restart }
+                end
                 button("pause") do
                   get_style_class.add "control"
                   set_on_action { |_| rpiet.pause }
@@ -212,14 +219,15 @@ module RPiet
                   end
                 end
               end
-              polygon([2, 9, 11, 9, 10, 4, 18, 10, 10, 16, 11, 11, 2, 11].to_java(:double), stroke_width: 10,
-                      translate_x: size, translate_y: (size/2) + size, scale_x: 6, scale_y: 6,
-                      fill: WHITE, id: 'dir', style: "-fx-padding: 3") do
-              end
+              # FIXME: stroke_width must be derived but I feel I need to add scrolling and a minimum
+              # codel display size before I can do this.
+              line(start_x: (size/2), start_y: size + (size/2), end_x: size + (size/2), end_y: size + (size/2),
+                   stroke_width: 10, id: 'connector')
             end
           end
         end
       end.show
+      $event_handler.debugger_started self
       reload_stylesheet(stage.scene)
       watch_stylesheet(stage.scene)
     end

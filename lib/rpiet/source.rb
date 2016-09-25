@@ -8,7 +8,7 @@ module RPiet
     attr_reader :rows, :cols, :groups, :pixels, :codel_size
 
     def initialize(image)
-      @cols, @rows = image.size
+      @cols, @rows = image.size.map &:to_i
       @codel_size = image.codel_size
       @pixels = alloc_matrix { |i, j| image.pixel(i, j)}
       @groups_matrix, @groups = calculate_groups

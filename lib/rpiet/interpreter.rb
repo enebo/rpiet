@@ -9,9 +9,7 @@ module RPiet
 
     def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
       @interpreter_thread = Thread.current
-      @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
       @source, @event_handler = RPiet::Source.new(image), event_handler
-      @event_handler.initialized(self)
     end
 
     def pause
@@ -28,15 +26,34 @@ module RPiet
       @interpreter_thread.run
     end
 
+    def restart
+      puts "Restarting"
+      @restart = true
+      abort
+    end
+
     def abort
+      puts "Aborting"
       @abort = true
       resume
     end
 
+    def reset
+      puts "Resetting"
+      @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
+      @event_handler.initialized(self)
+    end
+
     def run
-      Thread.stop if @paused
-      while(next_step) do
+      @restart = true
+      while @restart
+        @restart = false
+        reset
         Thread.stop if @paused
+        while(next_step) do
+          Thread.stop if @paused
+        end
+        @abort = false
       end
     end
 
@@ -48,6 +65,7 @@ module RPiet
       ex, ey = @source.group_at(@x, @y).point_for(@pvm)                         # Exit point from group
       @event_handler.step_begin(self, ex, ey)
       while attempt <= 8 do
+        return false if @abort
         nx, ny = @pvm.next_possible(ex, ey)                                     # where we enter Next group
         valid = @source.valid?(nx, ny)
         @event_handler.next_possible(self, ex, ey, nx, ny, valid)
