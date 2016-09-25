@@ -28,6 +28,11 @@ module RPiet
       @interpreter_thread.run
     end
 
+    def abort
+      @abort = true
+      resume
+    end
+
     def run
       Thread.stop if @paused
       while(next_step) do
@@ -36,6 +41,7 @@ module RPiet
     end
 
     def next_step
+      return false if @abort
       @pvm.block_value = @source.group_at(@x, @y).size
       i = 0
       seen_white = false

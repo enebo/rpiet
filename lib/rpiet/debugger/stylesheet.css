@@ -1,0 +1,26 @@
+#main {
+    -fx-background-color: #444455;
+}
+
+.codel {
+    -fx-arc-width: 1;
+    -fx-arc-width: 1;
+    -fx-stroke-width: 10;
+    -fx-background-color: #444455;
+}
+
+.controls {
+    -fx-padding: 10;
+    -fx-text-fill: #000000;
+}
+
+.control {
+    -fx-text-fill: #000000;
+}
+
+.out-of-bounds {
+    -fx-arc-width: 1;
+    -fx-arc-width: 1;
+    -fx-stroke-width: 0;
+    -fx-fill: #999999
+}

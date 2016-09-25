@@ -89,7 +89,7 @@ module RPiet
       alias :trying_again :step_begin
 
       def next_possible(runtime, x, y, valid)
-        @debugger.highlight_candidate(runtime, x, y)
+        @debugger.highlight_candidate(runtime, x, y, valid)
       end
 
       def operation(runtime, operation)
