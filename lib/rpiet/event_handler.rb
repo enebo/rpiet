@@ -7,7 +7,7 @@ module RPiet
     def initialized(runtime)
     end
 
-    def next_possible(runtime, ex, ey, valid)
+    def next_possible(runtime, edge_x, edge_y, next_x, next_y, valid)
     end
 
     def step_begin(runtime, ex, ey)
@@ -88,8 +88,8 @@ module RPiet
       end
       alias :trying_again :step_begin
 
-      def next_possible(runtime, x, y, valid)
-        @debugger.highlight_candidate(runtime, x, y, valid)
+      def next_possible(runtime, edge_x, edge_y, next_x, next_y, valid)
+        @debugger.highlight_candidate(runtime, next_x, next_y, valid)
       end
 
       def operation(runtime, operation)
