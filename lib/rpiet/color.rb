@@ -1,4 +1,4 @@
-require 'rpiet/cycle'
+require_relative 'cycle'
 
 module RPiet
   class Color

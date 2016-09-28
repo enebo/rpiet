@@ -1,5 +1,5 @@
-require 'rpiet/cycle'
-require 'rpiet/codel_chooser'
+require_relative 'cycle'
+require_relative 'codel_chooser'
 
 module RPiet
   extend RPiet::CycleMethod

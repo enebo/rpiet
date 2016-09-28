@@ -1,4 +1,4 @@
-require 'rpiet/direction_pointer'
+require_relative 'direction_pointer'
 
 module RPiet
   class CodelChooser

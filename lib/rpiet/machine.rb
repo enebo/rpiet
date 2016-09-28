@@ -1,5 +1,5 @@
-require 'rpiet/direction_pointer'
-require 'rpiet/codel_chooser'
+require_relative 'direction_pointer'
+require_relative 'codel_chooser'
 
 module RPiet
   ## 

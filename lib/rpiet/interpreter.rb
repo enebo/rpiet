@@ -1,7 +1,7 @@
-require 'rpiet/color'
-require 'rpiet/machine'
-require 'rpiet/source'
-require 'rpiet/event_handler'
+require_relative 'color'
+require_relative 'machine'
+require_relative 'source'
+require_relative 'event_handler'
 
 module RPiet
   class Interpreter

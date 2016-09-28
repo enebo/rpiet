@@ -1,2 +1,2 @@
-require 'rpiet/version'
-require 'rpiet/interpreter'
+require_relative 'rpiet/version'
+require_relative 'rpiet/interpreter'
