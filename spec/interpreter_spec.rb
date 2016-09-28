@@ -69,6 +69,7 @@ nb .. .. ++ ++
 
   it "Can push and pop" do
     interpreter = RPiet::Interpreter.new push_pop
+    interpreter.reset
     interpreter.next_step
     expect(interpreter.pvm.stack).to eq [2]
     interpreter.next_step
@@ -77,6 +78,7 @@ nb .. .. ++ ++
 
   it "Can push and add" do
     interpreter = RPiet::Interpreter.new push_add
+    interpreter.reset
     interpreter.next_step
     interpreter.next_step
     expect(interpreter.pvm.stack).to eq [2, 1]
@@ -86,6 +88,7 @@ nb .. .. ++ ++
 
   it "Can push and subtract" do
     interpreter = RPiet::Interpreter.new push_subtract
+    interpreter.reset
     interpreter.next_step
     interpreter.next_step
     expect(interpreter.pvm.stack).to eq [2, 1]
@@ -95,6 +98,7 @@ nb .. .. ++ ++
 
   it "Can push and multiply" do
     interpreter = RPiet::Interpreter.new push_multiply
+    interpreter.reset
     interpreter.next_step
     interpreter.next_step
     expect(interpreter.pvm.stack).to eq [2, 2]
@@ -104,6 +108,7 @@ nb .. .. ++ ++
 
   it "Can push and divide" do
     interpreter = RPiet::Interpreter.new push_divide
+    interpreter.reset
     interpreter.next_step
     interpreter.next_step
     expect(interpreter.pvm.stack).to eq [2, 2]
@@ -113,6 +118,7 @@ nb .. .. ++ ++
 
   it "Can push and mod" do
     interpreter = RPiet::Interpreter.new push_mod
+    interpreter.reset
     interpreter.next_step
     interpreter.next_step
     expect(interpreter.pvm.stack).to eq [2, 2]
@@ -122,6 +128,7 @@ nb .. .. ++ ++
 
   it "Can push and not" do
     interpreter = RPiet::Interpreter.new push_not
+    interpreter.reset
     interpreter.next_step
     interpreter.next_step
     expect(interpreter.pvm.stack).to eq [2, 2]
@@ -132,6 +139,7 @@ nb .. .. ++ ++
 
   it "Can skip white and push and pop" do
     interpreter = RPiet::Interpreter.new push_pop
+    interpreter.reset
     interpreter.next_step
     expect(interpreter.pvm.stack).to eq [2]
     interpreter.next_step
