@@ -5,10 +5,32 @@ module RPiet
   extend RPiet::CycleMethod
   cycle :Direction, :RIGHT, :DOWN, :LEFT, :UP
 
-  class << Direction::RIGHT; def deltas; [1, 0]; end; end
-  class << Direction::DOWN; def deltas; [0, 1]; end; end
-  class << Direction::LEFT; def deltas; [-1, 0]; end; end
-  class << Direction::UP; def deltas; [0, -1]; end; end
+  module DirectionExtras
+    def next_point(x, y)
+      dx, dy = deltas
+      [x + dx, y + dy]
+    end
+  end
+
+  class << Direction::RIGHT
+    include DirectionExtras
+    def deltas; [1, 0]; end
+  end
+
+  class << Direction::DOWN
+    include DirectionExtras
+    def deltas; [0, 1]; end
+  end
+
+  class << Direction::LEFT
+    include DirectionExtras
+    def deltas; [-1, 0]; end
+  end
+
+  class << Direction::UP
+    include DirectionExtras
+    def deltas; [0, -1]; end
+  end
 
   class DirectionPointer
     attr_reader :direction
@@ -26,8 +48,7 @@ module RPiet
     end
 
     def next_possible(x, y)
-      dx, dy = @direction.deltas
-      [x + dx, y + dy]
+      @direction.next_point(x, y)
     end
 
     ASCII_ARROWS = ['>', 'v', '<', '^']

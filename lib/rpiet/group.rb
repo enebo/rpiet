@@ -1,3 +1,4 @@
+require 'set'
 require_relative 'direction_pointer'
 require_relative 'codel_chooser'
 
@@ -38,6 +39,17 @@ module RPiet
       update_right point
       
       @points << point
+    end
+
+    def edges
+      edges = Set.new
+      @points.each do |x, y|
+        edges.add [x, y, :up] unless @points.include?(UP.next_point(x, y))
+        edges.add [x, y, :down] unless @points.include? DOWN.next_point(x, y)
+        edges.add [x, y, :left] unless @points.include?(LEFT.next_point(x, y))
+        edges.add [x, y, :right] unless @points.include? RIGHT.next_point(x, y)
+      end
+      edges
     end
 
     def include?(point)

@@ -75,4 +75,10 @@ describe "Group" do
     expect(hooky_group.ur).to eq([5,0])
     expect(hooky_group.ul).to eq([1,0])
   end
+
+  it 'has edges' do
+    expect(square_group.edges.to_a).to match_array([[1,0,:left], [1,0,:up], [2,0,:up], [3,0,:up], [3,0,:right],
+                                                    [1,1,:left], [3,1,:right],
+                                                    [1,2,:left], [1,2,:down], [2,2,:down], [3,2,:down],[3,2,:right]])
+  end
 end
