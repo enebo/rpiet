@@ -26,7 +26,7 @@ module RPiet
       @break_points["#{x}x#{y}"]
     end
 
-    def update_connector(start_x, start_y, end_x, end_y)
+    def update_directions(start_x, start_y, end_x, end_y)
       size = calculate_pixels_per_codel
       @stage["#connector"].tap do |connector|
         connector.start_x = size/2 + (start_x + 1) * size
@@ -34,15 +34,17 @@ module RPiet
         connector.end_x = size/2 + (end_x + 1) * size
         connector.end_y = size/2 + (end_y + 1) * size
       end
+      @stage["#dp"].rotate = @rpiet.pvm.dp.degrees
+      @stage["#cc"].rotate = @rpiet.pvm.cc.degrees(@rpiet.pvm.dp)
     end
 
     def begin_session
-      update_connector(-1, 0, 0, 0)
+      update_directions(-1, 0, 0, 0)
     end
 
     def highlight_candidate(runtime, edge_x, edge_y, next_x, next_y, valid)
       size = calculate_pixels_per_codel
-      update_connector(edge_x, edge_y, next_x, next_y)
+      update_directions(edge_x, edge_y, next_x, next_y)
       # Replace with black edge in debugger later
       if next_x < 0 || next_y < 0 || next_x >= @rpiet.source.cols || next_y >= @rpiet.source.rows
         puts "OUT OF BOUNDS #{next_x} #{next_y} #{@rpiet.source.rows} #{@rpiet.source.cols}"
@@ -68,8 +70,10 @@ module RPiet
           @stage["\##{@last_x}x#{@last_y}"].stroke = color
         end
         @last_x, @last_y = x, y
-        @stage["#dp"].rotate = runtime.pvm.dp.degrees
-        @stage["#cc"].rotate = runtime.pvm.cc.degrees(runtime.pvm.dp)
+
+        #@stage["#connector"].visible = false
+        @stage["#dp"].rotate = @rpiet.pvm.dp.degrees
+        @stage["#cc"].rotate = @rpiet.pvm.cc.degrees(@rpiet.pvm.dp)
       end
     end
 
