@@ -1,5 +1,65 @@
+#bv {
+    -fx-text-fill: #ffffff;
+    -fx-padding: 3;
+}
+
+
+#cc-label {
+    -fx-text-fill: #ffffff;
+    -fx-padding: 3;
+    -fx-font-size: 28;
+}
+
+#cc {
+    -fx-fill: #ffffff;
+    -fx-padding: 3;
+    -fx-stroke_width: 6;
+    -fx-scale-y: 3;
+    -fx-scale-x: 3;
+}
+
+#dp {
+    -fx-spacing: 20;
+}
+
+#dp-label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 28;
+}
+#dp-label2 {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 28;
+}
+
+#dp-arrow {
+    -fx-fill: #ffffff;
+}
+
 #main {
     -fx-background-color: #444455;
+}
+
+#oper {
+    -fx-text-fill: #ffffff;
+    -fx-padding: 3;
+}
+
+#state-values {
+}
+
+#stack {
+    -fx-text-fill: #ffffff;
+    -fx-padding: 3;
+}
+
+#state {
+    -fx-padding: 40;
+}
+
+
+#value {
+    -fx-text-fill: #ffffff;
+    -fx-padding: 3;
 }
 
 .codel {

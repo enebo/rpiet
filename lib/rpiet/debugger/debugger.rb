@@ -3,6 +3,10 @@ require 'thread'
 
 module RPiet
   class Debugger < JRubyFX::Application
+    include JRubyFX
+
+    attr_reader :stage
+
     WINDOW_DIM = 800 
     CODEL_DIM = 20
     NORMAL = Java::javafx.scene.paint.Color.web("0x222222")
@@ -11,8 +15,6 @@ module RPiet
     CURRENT = Java::javafx.scene.paint.Color::CADETBLUE
     WHITE = Java::javafx.scene.paint.Color::WHITE
 #    AUTO_STEP_TIME = 1
-    LABEL_CSS = {text_fill: WHITE, style: "-fx-padding: 3"}
-    include JRubyFX
 
     def self.instance
       @@instance
@@ -28,7 +30,7 @@ module RPiet
 
     def update_directions(start_x, start_y, end_x, end_y)
       size = calculate_pixels_per_codel
-      @stage["#connector"].tap do |connector|
+      stage["#connector"].tap do |connector|
         connector.start_x = size/2 + (start_x + 1) * size
         connector.start_y = size/2 + (start_y + 1) * size
         connector.end_x = size/2 + (end_x + 1) * size
@@ -46,16 +48,16 @@ module RPiet
       size = calculate_pixels_per_codel
       update_directions(edge_x, edge_y, next_x, next_y)
       # Replace with black edge in debugger later
-      if next_x < 0 || next_y < 0 || next_x >= @rpiet.source.cols || next_y >= @rpiet.source.rows
-        puts "OUT OF BOUNDS #{next_x} #{next_y} #{@rpiet.source.rows} #{@rpiet.source.cols}"
+      if next_x < 0 || next_y < 0 || next_x >= runtime.source.cols || next_y >= runtime.source.rows
+        puts "OUT OF BOUNDS #{next_x} #{next_y} #{runtime.source.rows} #{runtime.source.cols}"
         return
       end
       run_later do
-        @stage["\##{next_x}x#{next_y}"].stroke = CANDIDATE
+        stage["\##{next_x}x#{next_y}"].stroke = CANDIDATE
         if @lastc_x
           color = break_point?(@lastc_x, @lastc_y) ? BREAKPOINT : NORMAL
-          if color == NORMAL && @stage["\##{@lastc_x}x#{@lastc_y}"].stroke != CURRENT
-            @stage["\##{@lastc_x}x#{@lastc_y}"].stroke = color
+          if color == NORMAL && stage["\##{@lastc_x}x#{@lastc_y}"].stroke != CURRENT
+            stage["\##{@lastc_x}x#{@lastc_y}"].stroke = color
           end
         end
         @lastc_x, @lastc_y = next_x, next_y
@@ -64,10 +66,10 @@ module RPiet
 
     def highlight(runtime, x, y)
       run_later do
-        @stage["\##{x}x#{y}"].stroke = CURRENT
+        stage["\##{x}x#{y}"].stroke = CURRENT
         if @last_x
           color = break_point?(@last_x, @last_y) ? BREAKPOINT : NORMAL
-          @stage["\##{@last_x}x#{@last_y}"].stroke = color
+          stage["\##{@last_x}x#{@last_y}"].stroke = color
         end
         @last_x, @last_y = x, y
 
@@ -79,22 +81,18 @@ module RPiet
 
     def operation(runtime, oper)
       run_later do
-        @stage['#oper'].text = "oper: " + oper.to_s
-        @stage['#stack'].text = "stack: " + runtime.pvm.stack.inspect
-        @stage['#bv'].text = "value: " + runtime.pvm.block_value.inspect
+        puts "operation"
+        stage['#oper'].text = "oper: " + oper.to_s
+        stage['#stack'].text = "stack: " + runtime.pvm.stack.inspect
+        stage['#bv'].text = "value: " + runtime.pvm.block_value.inspect
+        stage['#state-values'].visible = true
       end
     end
 
-    ##
-    # JavaFX has some caching so we cheat the cache by using file: uri and varying the uri by adding
-    # a time param.
+    # JavaFX has some caching so we cheat the cache by using file: uri and varying the uri by adding  a time param.
     def reload_stylesheet(scene)
       scene.stylesheets.clear
-
-      name = File.join('file:' + File.dirname(__FILE__), (@odd_load_css ? '/./' : '') + "stylesheet.css")
-
-      puts "NAME #{name}"
-      scene.stylesheets.add(name)
+      scene.stylesheets.add(File.join('file:' + File.dirname(__FILE__), (@odd_load_css ? '/./' : '') + "stylesheet.css"))
       @odd_load_css = !@odd_load_css
     end
 
@@ -144,15 +142,17 @@ module RPiet
                   menu_item("Reload Stylesheet") { set_on_action { |_| debugger.reload_stylesheet(stage.scene) } }
                 end
               end)
-              left(hbox(style: "-fx-padding: 8") do
-                     label("dp:", LABEL_CSS)
-                     polygon([2, 9, 11, 9, 10, 4, 18, 10, 10, 16, 11, 11, 2, 11].to_java(:double), stroke_width: 6, fill: WHITE, id: 'dp', style: "-fx-padding: 3")
-                     label("cc:", text_fill: WHITE, style: "-fx-padding: 3")
-                     polygon([2, 9, 11, 9, 10, 4, 18, 10, 10, 16, 11, 11, 2, 11].to_java(:double), stroke_width: 6, fill: WHITE, id: 'cc', style: "-fx-padding: 3")
-                     label("oper:", {id: 'oper'}.merge(LABEL_CSS))
-                     label("value: ", {id: 'bv'}.merge(LABEL_CSS))
-                     label("stack:", {id: 'stack'}.merge(LABEL_CSS))
-                   end)
+              left(hbox(id: 'state') do
+                label("DP", id: 'dp-label')
+                polygon([2, 9, 11, 9, 10, 4, 18, 10, 10, 16, 11, 11, 2, 11].to_java(:double), id: 'dpa')
+                label("cc:", id: 'cc-label')
+                polygon([2, 9, 11, 9, 10, 4, 18, 10, 10, 16, 11, 11, 2, 11].to_java(:double), id: 'cc')
+                hbox(id: 'state-values') do
+                  label("oper:", id: 'oper')
+                  label("value: ", id: 'bv')
+                  label("stack:", id: 'stack')
+                end
+              end)
               right(hbox do
                 get_style_class.add "controls"
                 button("restart") do
@@ -232,6 +232,7 @@ module RPiet
         end
       end.show
       $event_handler.debugger_started self
+      begin_session
       reload_stylesheet(stage.scene)
       watch_stylesheet(stage.scene)
     end

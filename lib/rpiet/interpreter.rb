@@ -62,11 +62,11 @@ module RPiet
       ex, ey = @source.group_at(@x, @y).point_for(@pvm)                         # Exit point from group
       @event_handler.step_begin(self, ex, ey)
       while attempt <= 8 do
-        return false if @abort
         nx, ny = @pvm.next_possible(ex, ey)                                     # where we enter Next group
         valid = @source.valid?(nx, ny)
         @event_handler.next_possible(self, ex, ey, nx, ny, valid)
         Thread.stop if @paused
+        return false if @abort
 
         if !valid
           attempt += 1
