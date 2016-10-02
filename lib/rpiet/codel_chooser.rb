@@ -34,7 +34,7 @@ module RPiet
     end
 
     def inspect
-      (@direction == LEFT ? "left(0)" : "right(1)")
+      (@direction == LEFT ? "l" : "r")
     end
     alias :to_s :inspect
   end

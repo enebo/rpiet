@@ -14,7 +14,8 @@ module RPiet
     BREAKPOINT = Java::javafx.scene.paint.Color::RED
     CURRENT = Java::javafx.scene.paint.Color::CADETBLUE
     WHITE = Java::javafx.scene.paint.Color::WHITE
-#    AUTO_STEP_TIME = 1
+
+    ARROW = [2, 9, 11, 9, 10, 4, 18, 10, 10, 16, 11, 11, 2, 11].to_java(:double)
 
     def self.instance
       @@instance
@@ -36,8 +37,6 @@ module RPiet
         connector.end_x = size/2 + (end_x + 1) * size
         connector.end_y = size/2 + (end_y + 1) * size
       end
-      @stage["#dp"].rotate = @rpiet.pvm.dp.degrees
-      @stage["#cc"].rotate = @rpiet.pvm.cc.degrees(@rpiet.pvm.dp)
     end
 
     def begin_session
@@ -74,8 +73,9 @@ module RPiet
         @last_x, @last_y = x, y
 
         #@stage["#connector"].visible = false
-        @stage["#dp"].rotate = @rpiet.pvm.dp.degrees
-        @stage["#cc"].rotate = @rpiet.pvm.cc.degrees(@rpiet.pvm.dp)
+        @stage["#dp-arrow"].rotate = @rpiet.pvm.dp.degrees
+        @stage["#cc-arrow"].rotate = @rpiet.pvm.cc.degrees(@rpiet.pvm.dp)
+        @stage["#cc-text"].text = @rpiet.pvm.cc.to_s
       end
     end
 
@@ -140,13 +140,16 @@ module RPiet
                 end
                 menu("View") do
                   menu_item("Reload Stylesheet") { set_on_action { |_| debugger.reload_stylesheet(stage.scene) } }
+                  menu_item("Pause (0.1s)") { rpiet.delay = 0.1 }
+                  menu_item("Pause (0.25s)") { rpiet.delay = 0.25 }
                 end
               end)
               left(hbox(id: 'state') do
                 label("DP", id: 'dp-label')
-                polygon([2, 9, 11, 9, 10, 4, 18, 10, 10, 16, 11, 11, 2, 11].to_java(:double), id: 'dpa')
-                label("cc:", id: 'cc-label')
-                polygon([2, 9, 11, 9, 10, 4, 18, 10, 10, 16, 11, 11, 2, 11].to_java(:double), id: 'cc')
+                polygon(ARROW, id: 'dp-arrow')
+                label("CC:", id: 'cc-label')
+                polygon(ARROW, id: 'cc-arrow')
+                label(rpiet.pvm.cc.to_s, id: 'cc-text')
                 hbox(id: 'state-values') do
                   label("oper:", id: 'oper')
                   label("value: ", id: 'bv')

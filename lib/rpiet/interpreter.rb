@@ -12,6 +12,10 @@ module RPiet
       @source, @event_handler = RPiet::Source.new(image), event_handler
     end
 
+    def delay=(time)
+      @delay = time
+    end
+
     def pause
       @paused = true
     end
@@ -38,6 +42,7 @@ module RPiet
 
     def reset
       @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
+      @delay = 0
       @event_handler.initialized(self)
     end
 
@@ -65,12 +70,13 @@ module RPiet
         nx, ny = @pvm.next_possible(ex, ey)                                     # where we enter Next group
         valid = @source.valid?(nx, ny)
         @event_handler.next_possible(self, ex, ey, nx, ny, valid)
+        sleep @delay if @delay != 0
         Thread.stop if @paused
         return false if @abort
 
         if !valid
-          attempt += 1
           @pvm.orient_elsewhere(attempt)
+          attempt += 1
 
           ex, ey = @source.group_at(@x, @y).point_for(@pvm) if !seen_white
           @event_handler.trying_again(self, ex, ey)

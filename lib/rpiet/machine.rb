@@ -25,8 +25,8 @@ module RPiet
     ##
     # Change either codel chooser or direction pointer to try and look
     # at a different codel.
-    def orient_elsewhere(i)
-      if i.even?
+    def orient_elsewhere(attempt)
+      if attempt.even?
         dp.rotate!
       else
         cc.switch!
@@ -45,7 +45,7 @@ module RPiet
 
     def gtr; bin_op { |a, b| @stack << (a > b ? 1 : 0) }; end
     def not; unary_op { |top| @stack << (!top || top == 0 ? 1 : 0) }; end
-    def dup; @stack << @stack[-1]; end
+    def dup; @stack << @stack[-1] if @stack[-1]; end
     def nout; unary_op { |top| print top }; end
     def cout; unary_op { |top| print top.chr }; end
     def pntr; unary_op { |top| @dp.rotate! top }; end

@@ -10,29 +10,28 @@
     -fx-font-size: 28;
 }
 
-#cc {
+#cc-arrow {
     -fx-fill: #ffffff;
     -fx-padding: 3;
     -fx-stroke_width: 6;
-    -fx-scale-y: 3;
-    -fx-scale-x: 3;
+}
+
+#cc-text {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 28;
 }
 
 #dp {
     -fx-spacing: 20;
 }
 
+#dp-arrow {
+    -fx-fill: #ffffff;
+}
+
 #dp-label {
     -fx-text-fill: #ffffff;
     -fx-font-size: 28;
-}
-#dp-label2 {
-    -fx-text-fill: #ffffff;
-    -fx-font-size: 28;
-}
-
-#dp-arrow {
-    -fx-fill: #ffffff;
 }
 
 #main {
