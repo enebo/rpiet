@@ -91,9 +91,11 @@ module RPiet
 
     # JavaFX has some caching so we cheat the cache by using file: uri and varying the uri by adding  a time param.
     def reload_stylesheet(scene)
-      scene.stylesheets.clear
-      scene.stylesheets.add(File.join('file:' + File.dirname(__FILE__), (@odd_load_css ? '/./' : '') + "stylesheet.css"))
-      @odd_load_css = !@odd_load_css
+      run_later do
+        scene.stylesheets.clear
+        scene.stylesheets.add(File.join('file:' + File.dirname(__FILE__), (@odd_load_css ? '/./' : '') + "stylesheet.css"))
+        @odd_load_css = !@odd_load_css
+      end
     end
 
     def watch_stylesheet(scene)
