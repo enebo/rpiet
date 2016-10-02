@@ -3,6 +3,11 @@
     -fx-padding: 3;
 }
 
+#cc-arrow {
+    -fx-fill: #ffffff;
+    -fx-padding: 3;
+    -fx-stroke_width: 6;
+}
 
 #cc-label {
     -fx-text-fill: #ffffff;
@@ -10,15 +15,29 @@
     -fx-font-size: 28;
 }
 
-#cc-arrow {
-    -fx-fill: #ffffff;
-    -fx-padding: 3;
-    -fx-stroke_width: 6;
-}
-
 #cc-text {
     -fx-text-fill: #ffffff;
     -fx-font-size: 28;
+}
+
+.codel {
+    -fx-arc-width: 1;
+    -fx-arc-width: 1;
+    -fx-stroke-width: 10;
+    -fx-background-color: #444455;
+}
+
+#connector {
+    -fx-fill: #999999;
+}
+
+.controls {
+    -fx-padding: 10;
+    -fx-text-fill: #000000;
+}
+
+.control {
+    -fx-text-fill: #000000;
 }
 
 #dp {
@@ -43,7 +62,11 @@
     -fx-padding: 3;
 }
 
-#state-values {
+.out-of-bounds {
+    -fx-arc-width: 1;
+    -fx-arc-width: 1;
+    -fx-stroke-width: 0;
+    -fx-fill: #999999;
 }
 
 #stack {
@@ -55,35 +78,10 @@
     -fx-padding: 40;
 }
 
+#state-values {
+}
 
 #value {
     -fx-text-fill: #ffffff;
     -fx-padding: 3;
-}
-
-.codel {
-    -fx-arc-width: 1;
-    -fx-arc-width: 1;
-    -fx-stroke-width: 10;
-    -fx-background-color: #444455;
-}
-
-.controls {
-    -fx-padding: 10;
-    -fx-text-fill: #000000;
-}
-
-.control {
-    -fx-text-fill: #000000;
-}
-
-.out-of-bounds {
-    -fx-arc-width: 1;
-    -fx-arc-width: 1;
-    -fx-stroke-width: 0;
-    -fx-fill: #999999;
-}
-
-#connector {
-    -fx-fill: #999999;
 }
