@@ -33,7 +33,7 @@ module RPiet
   end
 
   class DirectionPointer
-    attr_reader :direction
+    attr_accessor :direction
 
     def initialize
       @direction = RPiet::Direction::RIGHT
@@ -47,8 +47,16 @@ module RPiet
       @direction.value * 90
     end
 
+    def from_ordinal!(ordinal)
+      @direction = @direction.abs(ordinal)
+    end
+
     def next_possible(x, y)
       @direction.next_point(x, y)
+    end
+
+    def ordinal
+      @direction.value
     end
 
     ASCII_ARROWS = ['>', 'v', '<', '^']

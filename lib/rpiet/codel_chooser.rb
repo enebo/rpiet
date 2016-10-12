@@ -3,7 +3,7 @@ require_relative 'direction_pointer'
 module RPiet
   class CodelChooser
     LEFT, RIGHT = -1, 1
-    attr_reader :direction
+    attr_accessor :direction
     def initialize; @direction = LEFT; end
     def switch!(amount = 1); @direction *= -1.**(amount % 2); end
 
@@ -31,6 +31,12 @@ module RPiet
       when RPiet::Direction::DOWN
         @direction == LEFT ? 0 : 180
       end
+    end
+
+    alias :ordinal :direction
+
+    def from_ordinal!(ordinal)
+      @direction = ordinal == LEFT ? LEFT : RIGHT
     end
 
     def inspect

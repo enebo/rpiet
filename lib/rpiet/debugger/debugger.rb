@@ -7,8 +7,7 @@ module RPiet
 
     attr_reader :stage
 
-    WINDOW_DIM = 800 
-    CODEL_DIM = 20
+    SIZE = 30
     NORMAL = Java::javafx.scene.paint.Color.web("0x222222")
     CANDIDATE = Java::javafx.scene.paint.Color::YELLOW
     BREAKPOINT = Java::javafx.scene.paint.Color::RED
@@ -20,23 +19,22 @@ module RPiet
     def self.instance
       @@instance
     end
-
-    def calculate_pixels_per_codel
-      WINDOW_DIM / [@rpiet.source.rows, @rpiet.source.cols].max
-    end
     
     def break_point?(x,y)
       @break_points["#{x}x#{y}"]
     end
 
     def update_directions(start_x, start_y, end_x, end_y)
-      size = calculate_pixels_per_codel
       stage["#connector"].tap do |connector|
-        connector.start_x = size/2 + (start_x + 1) * size
-        connector.start_y = size/2 + (start_y + 1) * size
-        connector.end_x = size/2 + (end_x + 1) * size
-        connector.end_y = size/2 + (end_y + 1) * size
+        connector.start_x = SIZE/2 + codel2pixels(start_x)
+        connector.start_y = SIZE/2 + codel2pixels(start_y)
+        connector.end_x = SIZE/2 + codel2pixels(end_x)
+        connector.end_y = SIZE/2 + codel2pixels(end_y)
       end
+    end
+
+    def codel2pixels(codel_offset)
+      (codel_offset + 1) * SIZE
     end
 
     def begin_session
@@ -44,7 +42,6 @@ module RPiet
     end
 
     def highlight_candidate(runtime, edge_x, edge_y, next_x, next_y, valid)
-      size = calculate_pixels_per_codel
       update_directions(edge_x, edge_y, next_x, next_y)
       # Replace with black edge in debugger later
       if next_x < 0 || next_y < 0 || next_x >= runtime.source.cols || next_y >= runtime.source.rows
@@ -76,6 +73,37 @@ module RPiet
         @stage["#dp-arrow"].rotate = @rpiet.pvm.dp.degrees
         @stage["#cc-arrow"].rotate = @rpiet.pvm.cc.degrees(@rpiet.pvm.dp)
         @stage["#cc-text"].text = @rpiet.pvm.cc.to_s
+
+        percent_y = y.to_f / (@rpiet.source.rows + 2)
+        percent_x = x.to_f / (@rpiet.source.cols + 2)
+        virtual_w = (@rpiet.source.cols + 2) * SIZE
+        virtual_h = (@rpiet.source.rows + 2) * SIZE
+        sb = stage['#scrollbar']
+        real_x, real_y = x * 43, y * 43  # I lay out 30x30 but they end up 43x43 on screen?
+        real_w, real_h = sb.width, sb.height
+        s_x, s_y = sb.hvalue * virtual_w, sb.vvalue * virtual_h
+
+        # FIXME: Add x,y offset guides on out of bound blocks so scrolling is less confusing
+        # FIXME: Clean this up and use a clamp so we do not exceed scroll bounds
+        a_x = real_x - s_x
+        if a_x > real_w
+          sb.hvalue += 0.1
+        elsif a_x < 0
+          sb.hvalue -= 0.1
+        end
+
+        a_y = real_y - s_y
+        if a_y > real_h
+          sb.vvalue += 0.1
+        elsif a_y < 0
+          sb.vvalue -= 0.1
+        end
+
+
+      #  puts "VirtW: #{virtual_w}, REAL_W: #{real_w}"
+      #  puts "S_X: #{(sb.hvalue * virtual_w).to_i} #{x * 43}"
+      #  puts "V: #{percent_y} #{sb.vmax} #{sb.vvalue} H: #{percent_x} #{sb.hmax} #{sb.hvalue}"
+        runtime.pause if break_point?(x, y)
       end
     end
 
@@ -122,12 +150,8 @@ module RPiet
       debugger = self
       pixels = @rpiet.source.pixels
       rpiet = @rpiet
-      size = calculate_pixels_per_codel
-      n = CODEL_DIM
-      arc_n = size / 6
-      stroke_width = size / 10
-      width, height = (@rpiet.source.cols + 2) * size, (@rpiet.source.rows + 2) * size + 90
-      with(stage, title: "RPiet", width: width, height: height) do
+      stroke_width = SIZE / 10
+      with(stage, title: "RPiet", width: 800, height: 600) do
         layout_scene do
           vbox(id: 'main') do
             border_pane do
@@ -142,6 +166,7 @@ module RPiet
                 end
                 menu("View") do
                   menu_item("Reload Stylesheet") { set_on_action { |_| debugger.reload_stylesheet(stage.scene) } }
+                  menu_item("Pause (0.025s)") { rpiet.delay = 0.025 }
                   menu_item("Pause (0.1s)") { rpiet.delay = 0.1 }
                   menu_item("Pause (0.25s)") { rpiet.delay = 0.25 }
                 end
@@ -178,14 +203,15 @@ module RPiet
                 end
               end)
             end
-            group do
-
+            scroll_pane(id: 'scrollbar') do |sp|
+              sp.set_content(group() do
+                Java::javafx.scene.layout.VBox.setVgrow(sp, Java::javafx.scene.layout.Priority::ALWAYS);
               # Horizontal top and bottom border
               (rpiet.source.cols + 2).times do |i|
-                rectangle(i*size, 0, size-1, size-1, stroke_type: :inside, stroke: NORMAL) do
+                rectangle(i*SIZE, 0, SIZE-1, SIZE-1, stroke_type: :inside, stroke: NORMAL) do
                   get_style_class.add "out-of-bounds"
                 end
-                rectangle(i*size, (rpiet.source.rows + 1)*size, size-1, size-1,
+                rectangle(i*SIZE, (rpiet.source.rows + 1)*SIZE, SIZE-1, SIZE-1,
                           stroke_type: :inside, stroke: NORMAL) do
                   get_style_class.add "out-of-bounds"
                 end
@@ -194,11 +220,11 @@ module RPiet
               # Left and right vertical border
               group do
                 rpiet.source.rows.times do |j|
-                  rectangle(0, (j + 1) * size, size-1, size-1, stroke_type: :inside, stroke: NORMAL) do
+                  rectangle(0, (j + 1) * SIZE, SIZE-1, SIZE-1, stroke_type: :inside, stroke: NORMAL) do
                     get_style_class.add "out-of-bounds"
                   end
 
-                  rectangle((rpiet.source.cols + 1) * size, (j + 1) * size, size-1, size-1,
+                  rectangle((rpiet.source.cols + 1) * SIZE, (j + 1) * SIZE, SIZE-1, SIZE-1,
                             stroke_type: :inside, stroke: NORMAL) do
                     get_style_class.add "out-of-bounds"
                   end
@@ -209,8 +235,7 @@ module RPiet
                 row.each_with_index do |piet_pixel, j|
                   color = Java::javafx.scene.paint.Color.web(piet_pixel.rgb)
                   ident = "#{i}x#{j}"
-                  rectangle((i+1)*size, (j+1)*size, size-1, size-1, fill: color,
-                            arc_width: arc_n, arc_height: arc_n, 
+                  rectangle((i+1)*SIZE, (j+1)*SIZE, SIZE-1, SIZE-1, fill: color,
                             stroke_type: :inside, stroke_width: stroke_width,
                             stroke: NORMAL, stroke_line_join: :round,
                             id: ident) do
@@ -229,9 +254,10 @@ module RPiet
                 end
               end
               # FIXME: stroke_width must be derived but I feel I need to add scrolling and a minimum
-              # codel display size before I can do this.
-              line(start_x: (size/2), start_y: size + (size/2), end_x: size + (size/2), end_y: size + (size/2),
+              # codel display SIZE before I can do this.
+              line(start_x: (SIZE/2), start_y: SIZE + (SIZE/2), end_x: SIZE + (SIZE/2), end_y: SIZE + (SIZE/2),
                    stroke_width: 10, id: 'connector')
+              end)
             end
           end
         end

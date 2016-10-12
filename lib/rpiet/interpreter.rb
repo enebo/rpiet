@@ -83,7 +83,7 @@ module RPiet
         elsif @source.pixels[nx][ny] == RPiet::Color::WHITE
           if !seen_white
             seen_white = true
-            attempt = 0
+            attempt = 1
             @event_handler.seen_white(self)
           end
           ex, ey = nx, ny

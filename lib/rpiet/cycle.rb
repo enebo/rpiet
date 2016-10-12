@@ -26,6 +26,10 @@ module RPiet
       @list[(@value - amount) % @list.length]
     end
 
+    def abs(amount)
+      @list[amount % @list.length]
+    end
+
     def to_initial
       @name[0]
     end

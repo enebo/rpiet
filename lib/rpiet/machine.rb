@@ -50,8 +50,8 @@ module RPiet
     def cout; unary_op { |top| print top.chr }; end
     def pntr; unary_op { |top| @dp.rotate! top }; end
     def swch; unary_op { |top| @cc.switch! top }; end
-    def n_in; puts "Enter an integer: "; @stack << $stdin.gets.to_i; end
-    def c_in; $stdout.write "> "; c = $stdin.read(1).ord; @stack << c; end
+    def nin; puts "Enter an integer: "; @stack << $stdin.gets.to_i; end
+    def cin; $stdout.write "> "; c = $stdin.read(1).ord; @stack << c; end
     def roll
       bin_op do |depth, num| 
         num %= depth
@@ -72,11 +72,15 @@ module RPiet
     ##
     # Execute the operation represented by the two colors
     def execute(color1, color2)
-      dh = color1.hue.delta color2.hue
-      dd = color1.lightness.delta color2.lightness
-      operation = OPERATION[dh][dd]
+      operation = calculate_operation(color1, color2)
       __send__(operation)
       operation
+    end
+
+    def calculate_operation(color1, color2)
+      dh = color1.hue.delta color2.hue
+      dd = color1.lightness.delta color2.lightness
+      OPERATION[dh][dd]
     end
 
     private
@@ -86,7 +90,10 @@ module RPiet
     end
     
     def unary_op(&block)
-      return unless @stack.length >= 1
+      if @stack.length < 1
+        puts "Whoa #{caller}"
+        return
+      end
       block.call(@stack.pop)
     end
 
@@ -106,7 +113,7 @@ module RPiet
                  [:add,  :sub, :mult],
                  [:div,  :mod, :not],
                  [:gtr,  :pntr, :swch],
-                 [:dup,  :roll, :n_in],
-                 [:c_in, :nout, :cout]]
+                 [:dup,  :roll, :nin],
+                 [:cin, :nout, :cout]]
   end
 end

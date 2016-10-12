@@ -40,7 +40,7 @@ module RPiet
       end
 
       def step_begin(runtime, ex, ey)
-        dmesg "step \##{runtime.step} -- #{runtime.pvm}"
+        dmesg "step \##{runtime.step} at #{ex} #{ey} -- #{runtime.pvm}"
       end
 
       def trying_again(runtime, ex, ey)
@@ -106,7 +106,7 @@ module RPiet
       end
 
       def trying_again(runtime, ex, ey)
-        puts "Trying again"
+        @debugger.highlight(runtime, ex, ey)
       end
     end
   end

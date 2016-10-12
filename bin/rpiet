@@ -3,12 +3,14 @@
 require 'optparse'
 require 'rpiet'
 
+run_ast = false
 codel_size = 1
 
 log = RPiet::Logger::NoOutput
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} -d image_file"
 
+  opts.on("-g", "--graph", "execute AST(graph)") { run_ast = true }
   opts.on("-d", "--debug style", "turn on debugging") do |style|
     log = case style
     when 'simple'
@@ -36,5 +38,10 @@ else
   image = RPiet::Image::URLImage.new(filename, codel_size)
 end
 
-RPiet::Interpreter.new(image, log.new).run
+if run_ast
+  require 'rpiet/graph_interpreter'
+  RPiet::GraphInterpreter.new(image, log.new).run
+else
+  RPiet::Interpreter.new(image, log.new).run
+end
 exit 0
