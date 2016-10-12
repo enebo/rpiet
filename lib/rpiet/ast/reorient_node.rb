@@ -6,14 +6,14 @@ module RPiet
   # through the image we need something to track
   # that.
   class ReorientNode < Node
-    def initialize(step, x, y, cc_value, dp_value)
+    def initialize(step, x, y, cc_ordinal, dp_ordinal)
       super(step, x, y)
-      @dp_value, @cc_ordinal = dp_value, cc_value
+      @dp_value, @cc_ordinal = dp_ordinal, cc_ordinal
     end
 
     def execute(machine)
-      machine.cc.direction = @cc_value
-      machine.dp.direction = machine.dp.direction.abs(@dp_value)
+      machine.cc.from_ordinal!(@cc_value)
+      machine.dp.from_ordinal!(@dp_value)
     end
   end
 end
