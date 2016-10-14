@@ -106,11 +106,17 @@ module RPiet
 
           @step += 1
 
-          if attempt > 1
-            node = Node.create(@step, nx, ny, :reorient, @pvm.cc.ordinal, @pvm.dp.ordinal)
+          if @current_state.dp_ordinal != @pvm.dp.ordinal
+            node = Node.create(@step, nx, ny, :dp, @pvm.cc.ordinal, @pvm.dp.ordinal)
             @current_state.node.add_path(node, @current_state.cc_ordinal, @current_state.dp_ordinal)
             @current_state.node = node
             @already_visited[@current_state] = node
+          end
+          if @current_state.cc_ordinal != @pvm.cc.ordinal
+            node = Node.create(@step, nx, ny, :cc, @pvm.cc.ordinal, @pvm.dp.ordinal)
+            @current_state.node.add_path(node, @current_state.cc_ordinal, @current_state.dp_ordinal)
+            @current_state.node = node
+            @already_visited[@current_state] = node unless @already_visited[@current_state]
           end
 
           node = Node.create(@step, nx, ny, operation, @pvm.block_value)

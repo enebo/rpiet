@@ -3,7 +3,8 @@ module RPiet
   # Base class of all nodes
   class Node
     Operations = [:noop, :push, :pop, :add,  :sub, :mult, :div,  :mod, :not,
-                  :gtr,  :pntr, :swch, :dup,  :roll, :nin, :cin, :nout, :cout, :reorient]
+                  :gtr,  :pntr, :swch, :dup,  :roll, :nin, :cin, :nout, :cout,
+                  :dp, :cc]
 
     Nodes = []
     Operations.each do |operation|
@@ -41,7 +42,7 @@ module RPiet
 
     def self.create(step, x, y, operation, *extra_args)
       klazz = Nodes[Operations.find_index(operation)]
-      if operation == :push || operation == :reorient
+      if operation == :push || operation == :dp || operation == :cc
         klazz.new step, x, y, *extra_args
       else
         klazz.new step, x, y
