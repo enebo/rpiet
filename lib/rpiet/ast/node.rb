@@ -32,7 +32,9 @@ module RPiet
 
     def exec(machine)
       #puts "exec p##{@step} [#{@x}, #{@y}](#{name}): #{machine}"
-      execute(machine)
+      value = execute(machine)
+      return value if branch?
+      next_node
     end
 
     def inspect

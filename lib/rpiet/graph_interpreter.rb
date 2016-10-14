@@ -12,12 +12,7 @@ module RPiet
     def run
       node = @graph
       while node do
-        value = node.exec @pvm
-        if node.branch?
-          node = value
-        else
-          node = node.next_node
-        end
+        node = node.exec @pvm
       end
     end
   end
