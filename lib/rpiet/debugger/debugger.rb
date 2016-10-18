@@ -262,6 +262,11 @@ module RPiet
           end
         end
       end.show
+
+      stage.set_on_close_request {
+        rpiet.abort
+        Platform.exit
+      }
       $event_handler.debugger_started self
       begin_session
       reload_stylesheet(stage.scene)
