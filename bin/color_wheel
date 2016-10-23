@@ -1,0 +1,83 @@
+require 'rpiet/color'
+require 'rpiet/image/ascii_image'
+
+
+def die(message)
+  puts message
+  exit -1
+end
+
+def decode(item)
+  item, dimensions = item.split(':') if item.include? ':'
+
+  if dimensions
+    if dimensions.include? 'x'
+      rows, cols = dimensions.split('x').map &:to_i
+    else
+      rows, cols = 1, dimensions.to_i
+    end
+  else
+    rows, cols = 1, 1
+  end
+
+  [item, rows, cols]
+end  
+
+# Starting color
+color_name = ARGV.shift
+commands = ARGV
+color_name, rows, cols = decode(color_name)
+
+rgb = RPiet::Image::AsciiImage::STR2RGB[color_name]
+die "Invalid color name: '#{color_name}'" unless rgb
+
+color = RPiet::Color.color_for(format "0x%02x%02x%02x" % rgb)
+
+CHANGES = {
+  noop: [0, 0],
+  push: [0, 1],
+  pop: [0, 2],
+  add: [1, 0],
+  sub: [1, 1],
+  mult: [1, 2],
+  div: [2, 0],
+  mod: [2, 1],
+  not: [2, 2],
+  gtr: [3, 0],
+  pntr: [3, 1],
+  swch: [3, 2],
+  dup: [4, 0],
+  roll: [4, 1],
+  nin: [4, 2],
+  cin: [5, 0],
+  nout: [5, 1],
+  cout: [5, 2]
+}
+
+
+total_rows, total_cols = rows, cols
+groups = [[color, rows, cols]]
+commands.each do |command|
+  command, rows, cols = decode command
+  deltas = CHANGES[command.to_sym]
+  die "Invalid command: '#{command}'" unless deltas
+  color = color.color_from(hue_delta: deltas[0], lightness_delta: deltas[1])
+  groups << [color, rows, cols]
+  total_rows = rows if rows > total_rows
+  total_cols += cols
+end
+
+image = Array.new(total_rows) { Array.new(total_cols) {'++'} }
+
+col_index, row_index = 0, 0
+groups.each do |color, rows, cols|
+  id = color.to_initial
+  rows.times do |j|
+    cols.times do |i|
+      image[row_index + j][col_index + i] = id
+    end
+  end
+  col_index += cols
+end
+
+image.each { |rows|  puts rows.join(' ') }

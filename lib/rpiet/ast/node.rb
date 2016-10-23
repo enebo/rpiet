@@ -3,6 +3,7 @@ module RPiet
   # Base class of all nodes
   class Node
     attr_reader :next_node
+    attr_reader :step, :x, :y
 
     def initialize(step, x, y)
       @step, @x, @y = step, x, y
@@ -35,7 +36,7 @@ module RPiet
     end
 
     def exec(machine)
-      puts "exec p##{@step} [#{@x}, #{@y}](#{self.class.operation_name}): #{machine}"
+#      puts "exec p##{@step} [#{@x}, #{@y}](#{self.class.operation_name}): #{machine}"
       value = execute(machine)
       return value if branch?
       next_node

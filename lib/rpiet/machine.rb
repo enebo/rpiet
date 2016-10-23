@@ -90,10 +90,7 @@ module RPiet
     end
     
     def unary_op(&block)
-      if @stack.length < 1
-        puts "Whoa #{caller}"
-        return
-      end
+      return if @stack.length < 1
       block.call(@stack.pop)
     end
 

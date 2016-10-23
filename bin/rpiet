@@ -3,14 +3,17 @@
 require 'optparse'
 require 'rpiet'
 
-run_ast = false
+run = :chowder
+time_execution = false
 codel_size = 1
 
 log = RPiet::Logger::NoOutput
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} -d image_file"
 
-  opts.on("-g", "--graph", "execute AST(graph)") { run_ast = true }
+  opts.on("-t", "--time", "time execution") { time_execution = true }
+  opts.on("-g", "--graph", "execute AST(graph)") { run = :graph }
+  opts.on("-i", "--ir", "execute IR(list)") { run = :ir }
   opts.on("-d", "--debug style", "turn on debugging") do |style|
     log = case style
     when 'simple'
@@ -25,23 +28,39 @@ opts = OptionParser.new do |opts|
 end
 
 opts.parse!(ARGV)
-opts.usage("You need to supply a source image filename.") unless ARGV.first
+unless ARGV.first
+  puts "You need to supply a source image filename."
+  puts opts
+  exit -1
+end
 
 filename = ARGV.first
 
 if filename =~ /.txt/
   require 'rpiet/image/ascii_image'
   image = RPiet::Image::AsciiImage.new(File.read(filename), codel_size)
+elsif filename == '-'
+  require 'rpiet/image/ascii_image'
+  image = RPiet::Image::AsciiImage.new($stdin.gets(nil), codel_size)
 else
-  filename = 'file:' + ARGV.first if File.exist? filename
+  filename = 'file:' + filename if File.exist? filename
   require 'rpiet/image/url_image'
   image = RPiet::Image::URLImage.new(filename, codel_size)
 end
 
-if run_ast
-  require 'rpiet/graph_interpreter'
-  RPiet::GraphInterpreter.new(image, log.new).run
-else
-  RPiet::Interpreter.new(image, log.new).run
+start = Time.now if time_execution
+
+case run
+  when :graph
+    require 'rpiet/graph_interpreter'
+    RPiet::GraphInterpreter.new(image, log.new).run
+  when :ir
+    require 'rpiet/ir/ir_interpreter'
+    RPiet::IR::IRInterpreter.new(image, log.new).run
+  else
+    RPiet::Interpreter.new(image, log.new).run
 end
+
+puts "time: #{Time.now - start}s" if time_execution
+
 exit 0

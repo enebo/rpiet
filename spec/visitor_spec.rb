@@ -22,7 +22,10 @@ db db db
 
       def visit_first(node)
         @nodes[node] = 1
+        super
       end
+      alias :visit_first_swch :visit_first
+      alias :visit_first_pntr :visit_first
 
       def visit_again(node)
         @nodes[node] += 1
@@ -31,8 +34,7 @@ db db db
   end
 
   it "can visit all nodes once plus one extra visit for a cycle" do
-    graph = RPiet::Parser.new(cycle).run
-    graph.visit my_visitor
+    my_visitor.run RPiet::Parser.new(cycle).run
     expect(my_visitor.nodes.size).to eq(11)
     expect(my_visitor.nodes.values.inject(0) { |s, e| s += e; s}).to eq(12) # 1 node visited twice
   end

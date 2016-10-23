@@ -14,11 +14,16 @@ opts = OptionParser.new do |opts|
 end
 
 opts.parse!(ARGV)
-opts.usage("You need to supply a source image filename.") unless ARGV.first
+unless ARGV.first
+  puts "You need to supply a source image filename."
+  puts opts
+  exit -1
+end
 
 filename = ARGV.first
+file_contents = filename == '-' ? $stdin.read(nil) : File.read(filename)
 
-image = RPiet::Image::AsciiImage.new(File.read(filename), input_codel_size)
+image = RPiet::Image::AsciiImage.new(file_contents, input_codel_size)
 width, height = image.size
 
 canvas = ImageVoodoo.canvas(output_codel_size * width, output_codel_size * height, 'ffffff')
@@ -27,4 +32,8 @@ image.each do |i, j, color|
   canvas.rect i * output_codel_size, j * output_codel_size, output_codel_size, output_codel_size, color.rgb[2..-1]
 end
 
-canvas.save(File.basename(filename, ".txt") + "." + image_type)
+if filename == '-'
+  $stdout.write canvas.bytes('png')
+else
+  canvas.save(File.basename(filename, ".txt") + "." + image_type)
+end

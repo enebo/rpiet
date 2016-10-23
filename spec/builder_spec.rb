@@ -14,7 +14,7 @@ db db db
   it "can visit all nodes once plus one extra visit for a cycle" do
     graph = RPiet::Parser.new(cycle).run
     builder = RPiet::Builder.new
-    graph.visit builder
+    builder.run graph
     p builder.instructions
   end
 end

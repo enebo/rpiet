@@ -13,6 +13,11 @@ module RPiet
       @lightness, @hue, @rgb = lightness, hue, rgb
     end
 
+    def color_from(lightness_delta: 0, hue_delta: 0)
+      LIGHTNESS_HUE[lightness.incr(lightness_delta)][hue.incr(hue_delta)]
+    end
+    
+    # Display color as initial of lightness followed by hue (normal blue == nb).
     def to_initial
       @lightness.to_initial + @hue.to_initial
     end
@@ -61,6 +66,34 @@ module RPiet
       '0x00c0c0' => DARK_CYAN, '0x0000c0' => DARK_BLUE, '0xc000c0' => DARK_MAGENTA,
       RGB_WHITE => WHITE,
       RGB_BLACK => BLACK
+    }
+
+    LIGHTNESS_HUE = {
+      LIGHTNESS::LIGHT => {
+        HUE::RED => LIGHT_RED,
+        HUE::YELLOW => LIGHT_YELLOW,
+        HUE::GREEN => LIGHT_GREEN,
+        HUE::CYAN => LIGHT_CYAN,
+        HUE::BLUE => LIGHT_BLUE,
+        HUE::MAGENTA => LIGHT_MAGENTA
+      },
+      LIGHTNESS::NORMAL => {
+        HUE::RED => RED,
+        HUE::YELLOW => YELLOW,
+        HUE::GREEN => GREEN,
+        HUE::CYAN => CYAN,
+        HUE::BLUE => BLUE,
+        HUE::MAGENTA => MAGENTA
+      },
+      LIGHTNESS::DARK => {
+        HUE::RED => DARK_RED,
+        HUE::YELLOW => DARK_YELLOW,
+        HUE::GREEN => DARK_GREEN,
+        HUE::CYAN => DARK_CYAN,
+        HUE::BLUE => DARK_BLUE,
+        HUE::MAGENTA => DARK_MAGENTA
+      }
+
     }
   end
 end

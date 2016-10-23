@@ -1,0 +1,7 @@
+lr db .. nc dc dc dc dc dc
+++ ++ ++ ++ ++ nc ++ ++ lb
+++ ny ++ ++ ++ .. ++ ++ lb
+ny ny ny ++ ++ .. ++ ++ lg
+++ ny ++ ++ ++ .. ++ ++ ng
+++ ny .. .. .. nc lr lc dg
+
