@@ -48,19 +48,20 @@ else
   image = RPiet::Image::URLImage.new(filename, codel_size)
 end
 
-start = Time.now if time_execution
 
-case run
+runner = case run
   when :graph
     require 'rpiet/graph_interpreter'
-    RPiet::GraphInterpreter.new(image, log.new).run
+    RPiet::GraphInterpreter.new(image, log.new)
   when :ir
     require 'rpiet/ir/ir_interpreter'
-    RPiet::IR::IRInterpreter.new(image, log.new).run
+    RPiet::IR::IRInterpreter.new(image, log.new)
   else
-    RPiet::Interpreter.new(image, log.new).run
+    RPiet::Interpreter.new(image, log.new)
 end
 
+start = Time.now if time_execution
+runner.run
 puts "time: #{Time.now - start}s" if time_execution
 
 exit 0
