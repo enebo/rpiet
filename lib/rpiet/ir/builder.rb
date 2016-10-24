@@ -7,6 +7,7 @@ module RPiet
   # traditional instructions.  These instructions will be
   # translated into different back-ends.
   class Builder < Visitor
+    DEBUG = false
     include RPiet::IR::Instructions, RPiet::IR::Operands
 
     attr_reader :instructions, :dp, :cc
@@ -24,14 +25,14 @@ module RPiet
     end
 
     def visit_first(node)
-      add NodeInstr.new(node.operation, node.step, node.x, node.y)
+      add NodeInstr.new(node.operation, node.step, node.x, node.y) if DEBUG
       @current_node = node
       instructions_for node
       super node
     end
 
     def visit_first_pntr(node, worklist)
-      add NodeInstr.new(node.operation, node.step, node.x, node.y)
+      NodeInstr.new(node.operation, node.step, node.x, node.y) if DEBUG
 
       # In stack make pntr = (pntr + 1) % 4
       @current_node = node
@@ -46,7 +47,7 @@ module RPiet
         add BNEInstr.new @dp, num(i), next_label
         worklist << node.paths[i]
         visit(worklist)
-        add next_label
+        add next_label unless i == 3
       end
       add end_label
 
@@ -54,7 +55,7 @@ module RPiet
     end
 
     def visit_first_swch(node, worklist)
-      add NodeInstr.new(node.operation, node.step, node.x, node.y)
+      add NodeInstr.new(node.operation, node.step, node.x, node.y) if DEBUG
 
       @current_node = node
       variables(2) do |pop, result|
@@ -76,7 +77,7 @@ module RPiet
     end
 
     def visit_again(node)
-      add NodeInstr.new("re-#{node.operation}", node.step, node.x, node.y)
+      add NodeInstr.new("re-#{node.operation}", node.step, node.x, node.y) if DEBUG
       
       label = @jump_labels[node]
 

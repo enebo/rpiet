@@ -24,6 +24,7 @@ module Kernel
     scope = RPiet::JRubyBackend.new(runtime.getIRManager, tc.current_static_scope).build(builder.instructions, builder.cc, builder.dp)
     
     body = scope.block_body
+    runtime.getJITCompiler.get_task_for(tc, body).run
     block = org.jruby.runtime.Block.new(body, tc.currentBinding(runtime.object, tc.current_scope))
 
     #set_trace_func proc { |event, *e| p e if event.to_s == "call" }
@@ -48,6 +49,8 @@ end
 
 module RPiet
   class JRubyBackend
+    DEBUG = false
+
     java_import org.jruby.parser.StaticScope
     java_import org.jruby.parser.StaticScopeFactory
     java_import org.jruby.runtime.ArgumentDescriptor
@@ -226,7 +229,7 @@ module RPiet
         when :copy
           add copy(instr.result, instr.operand)
         when :node
-          add TraceInstr.new(RubyEvent::CALL, instr.to_s, "", -1)
+          add TraceInstr.new(RubyEvent::CALL, instr.to_s, "", -1) if DEBUG
         end
       end
       add call(temp_var, stack_var, :pop)
