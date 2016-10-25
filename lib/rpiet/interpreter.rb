@@ -10,6 +10,7 @@ module RPiet
     def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
       @interpreter_thread = Thread.current
       @source, @event_handler = RPiet::Source.new(image), event_handler
+      @delay = 0
     end
 
     def delay=(time)
@@ -42,7 +43,6 @@ module RPiet
 
     def reset
       @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
-      @delay = 0
       @event_handler.initialized(self)
     end
 
