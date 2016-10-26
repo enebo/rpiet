@@ -148,7 +148,13 @@ module RPiet
       @break_points = break_points = {}
       @stage = stage
       debugger = self
-      pixels = @rpiet.source.pixels
+
+      # FIXME: Move into convenience module near top of JRubyFX hier.  Maybe make a feature for these
+      ::Kernel.instance_eval {
+        define_method(:codel) { |i=1| SIZE * i}
+        define_method(:half_codel) { SIZE/2 }
+      }
+      rows, cols, pixels = @rpiet.source.rows, @rpiet.source.cols, @rpiet.source.pixels
       rpiet = @rpiet
       stroke_width = SIZE / 10
       with(stage, title: "RPiet", width: 800, height: 600) do
@@ -205,40 +211,46 @@ module RPiet
             end
             scroll_pane(id: 'scrollbar') do |sp|
               sp.set_content(group() do
-                Java::javafx.scene.layout.VBox.setVgrow(sp, Java::javafx.scene.layout.Priority::ALWAYS);
+                Java::javafx.scene.layout.VBox.setVgrow(sp, Java::javafx.scene.layout.Priority::ALWAYS)
+
               # Horizontal top and bottom border
               (rpiet.source.cols + 2).times do |i|
-                rectangle(i*SIZE, 0, SIZE-1, SIZE-1, stroke_type: :inside, stroke: NORMAL) do
+                rectangle(codel(i), 0, codel-1, codel-1, stroke_type: :inside, stroke: NORMAL) do
                   get_style_class.add "out-of-bounds"
                 end
-                rectangle(i*SIZE, (rpiet.source.rows + 1)*SIZE, SIZE-1, SIZE-1,
+                text(codel(i) + half_codel, half_codel, (i-1).to_s) if i != 0 && i != cols + 1
+
+                rectangle(codel(i), codel(rpiet.source.rows + 1), codel-1, codel-1,
                           stroke_type: :inside, stroke: NORMAL) do
                   get_style_class.add "out-of-bounds"
                 end
+                text(codel(i) + half_codel, codel(rows + 1) + half_codel, (i-1).to_s) if i != 0 && i != cols + 1
+
               end
 
               # Left and right vertical border
               group do
                 rpiet.source.rows.times do |j|
-                  rectangle(0, (j + 1) * SIZE, SIZE-1, SIZE-1, stroke_type: :inside, stroke: NORMAL) do
+                  rectangle(0, codel(j + 1), codel-1, codel-1, stroke_type: :inside, stroke: NORMAL) do
                     get_style_class.add "out-of-bounds"
                   end
+                  text(half_codel, codel(j + 1) + half_codel, j.to_s)
 
-                  rectangle((rpiet.source.cols + 1) * SIZE, (j + 1) * SIZE, SIZE-1, SIZE-1,
-                            stroke_type: :inside, stroke: NORMAL) do
+                  rectangle(codel(cols + 1), codel(j + 1), codel-1, codel-1, stroke_type: :inside, stroke: NORMAL) do
                     get_style_class.add "out-of-bounds"
                   end
+                  text(codel(cols + 1) + half_codel, codel(j + 1) + half_codel, j.to_s)
                 end
               end
 
+              # Main codels
               pixels.each_with_index do |row, i|
                 row.each_with_index do |piet_pixel, j|
                   color = Java::javafx.scene.paint.Color.web(piet_pixel.rgb)
                   ident = "#{i}x#{j}"
-                  rectangle((i+1)*SIZE, (j+1)*SIZE, SIZE-1, SIZE-1, fill: color,
+                  rectangle(codel(i+1), codel(j+1), codel-1, codel-1, fill: color,
                             stroke_type: :inside, stroke_width: stroke_width,
-                            stroke: NORMAL, stroke_line_join: :round,
-                            id: ident) do
+                            stroke: NORMAL, stroke_line_join: :round, id: ident) do
                     get_style_class.add "codel"
                     set_on_mouse_clicked do |event|
                       new_color = if event.source.stroke == BREAKPOINT
@@ -255,8 +267,8 @@ module RPiet
               end
               # FIXME: stroke_width must be derived but I feel I need to add scrolling and a minimum
               # codel display SIZE before I can do this.
-              line(start_x: (SIZE/2), start_y: SIZE + (SIZE/2), end_x: SIZE + (SIZE/2), end_y: SIZE + (SIZE/2),
-                   stroke_width: 10, id: 'connector')
+              line(start_x: half_codel, start_y: codel + half_codel,
+                   end_x: codel + half_codel, end_y: codel + half_codel, stroke_width: 10, id: 'connector')
               end)
             end
           end
