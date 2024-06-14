@@ -7,6 +7,7 @@ module RPiet
 
     attr_reader :stage
 
+    DEFAULT_DELAY = 0.25 # seconds
     SIZE = 30
     NORMAL = Java::javafx.scene.paint.Color.web("0x222222")
     CANDIDATE = Java::javafx.scene.paint.Color::YELLOW
@@ -70,9 +71,9 @@ module RPiet
         @last_x, @last_y = x, y
 
         #@stage["#connector"].visible = false
-        @stage["#dp-arrow"].rotate = @rpiet.pvm.dp.degrees
-        @stage["#cc-arrow"].rotate = @rpiet.pvm.cc.degrees(@rpiet.pvm.dp)
-        @stage["#cc-text"].text = @rpiet.pvm.cc.to_s
+        stage["#dp-arrow"].rotate = @rpiet.pvm.dp.degrees
+        stage["#cc-arrow"].rotate = @rpiet.pvm.cc.degrees(@rpiet.pvm.dp)
+        stage["#cc-text"].text = @rpiet.pvm.cc.to_s
 
         percent_y = y.to_f / (@rpiet.source.rows + 2)
         percent_x = x.to_f / (@rpiet.source.cols + 2)
@@ -148,6 +149,7 @@ module RPiet
       @break_points = break_points = {}
       @stage = stage
       debugger = self
+      @rpiet.delay = DEFAULT_DELAY
 
       # FIXME: Move into convenience module near top of JRubyFX hier.  Maybe make a feature for these
       ::Kernel.instance_eval {
@@ -172,9 +174,9 @@ module RPiet
                 end
                 menu("View") do
                   menu_item("Reload Stylesheet") { set_on_action { |_| debugger.reload_stylesheet(stage.scene) } }
-                  menu_item("Pause (0.025s)") { rpiet.delay = 0.025 }
-                  menu_item("Pause (0.1s)") { rpiet.delay = 0.1 }
-                  menu_item("Pause (0.25s)") { rpiet.delay = 0.25 }
+                  menu_item("Pause (0.025s)") { set_on_action { |_| rpiet.delay = 0.025 } }
+                  menu_item("Pause (0.1s)") { set_on_action { |_| rpiet.delay = 0.1 } }
+                  menu_item("Pause (#{DEFAULT_DELAY}s)") { set_on_action { |_| rpiet.delay = DEFAULT_DELAY } }
                 end
               end)
               left(hbox(id: 'state') do
