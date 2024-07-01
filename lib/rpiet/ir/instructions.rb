@@ -168,18 +168,18 @@ module RPiet
         end
 
         def execute(stack)
-          depth, num = depth.decode, num.decode
-          num %= depth
-          return if depth <= 0 || num == 0
-          if num > 0
-            stack[-depth..-1] = stack[-num..-1] + stack[-depth...-num]
-          elsif num < 0
-            stack[-depth..-1] = stack[-depth...-num] + stack[-num..-1]
+          d, n = depth.decode, num.decode
+          n %= d
+          return if d <= 0 || num == 0
+          if n > 0
+            stack[-d..-1] = stack[-n..-1] + stack[-d...-n]
+          elsif n < 0
+            stack[-d..-1] = stack[-d...-n] + stack[-n..-1]
           end
         end
 
         def to_s
-          "#{name}(#{operand1}, #{operand2})"
+          "#{name}(#{depth}, #{num})"
         end
       end
 
@@ -210,7 +210,7 @@ module RPiet
         end
 
         def to_s
-          "#{operand1} #{@doc_syntax} #{operand2} -> #{label}"
+          "#{operand1} #{doc_syntax} #{operand2} -> #{label}"
         end
       end
 

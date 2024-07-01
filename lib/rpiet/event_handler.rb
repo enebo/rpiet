@@ -55,6 +55,10 @@ module RPiet
         dmesg "Execution trapped, program terminates"
       end
 
+      def instruction(runtime, instruction)
+        dmesg "instr: #{instruction}"
+      end
+
       def operation(runtime, operation)
         dmesg "exec: #{operation} -- #{runtime.pvm}"
       end

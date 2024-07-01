@@ -19,9 +19,9 @@ module RPiet
       end
       class VariableOperand
         attr_accessor :value
-        def initialize(value); @value = value; end
-        def name; :var; end
-        def to_s; "#{value}"; end
+        def initialize(name); @name = name; end
+        def name; @name; end
+        def to_s; "#@name:(#@value)" end
 
         alias :decode :value
         alias :encode= :value=
