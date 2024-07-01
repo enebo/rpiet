@@ -1,4 +1,4 @@
-require 'jrubyfx'
+
 require 'rpiet/image/image'
 
 # Raw in Java is BufferendImage.  In MRI it just needs to define:
@@ -6,18 +6,16 @@ require 'rpiet/image/image'
 module RPiet
   module Image
     class URLImage < RPiet::Image::Image
-      include JRubyFX::DSL
-
       def initialize(file, codel_size=1)
         super(codel_size)
-        image = image(file)
-        @width, @height, @raw = image.width, image.height, image.pixel_reader
+        image = javax.imageio.ImageIO.read(java.net.URL.new(file))
+        @width, @height, @raw = image.width, image.height, image
       end
 
       def raw_pixel(x, y)
-        rgb = @raw.get_color(x, y)
+        rgb = java.awt.Color.new(@raw.get_rgb(x, y))
 
-        [(rgb.red*255).to_i, (rgb.green*255).to_i, (rgb.blue*255).to_i]
+        [rgb.red, rgb.green, rgb.blue]
       end
 
       def raw_width
