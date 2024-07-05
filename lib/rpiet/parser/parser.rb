@@ -54,16 +54,13 @@ module RPiet
     end
 
     ##
-    # Add new state to visit if we haven't already.
+    # Add state to graph.  If we have seen it we link to it otherwise we add to worklist.
     def add_state(state)
       if @already_visited[state]
         state.node.add_path @already_visited[state], state.cc_ordinal, state.dp_ordinal
-        return
+      elsif !@work_list.include?(state)
+        @work_list.push state
       end
-
-      return if @work_list.include?(state)
-
-      @work_list.push state
     end
 
     def restore_state(state)
