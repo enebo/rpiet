@@ -4,10 +4,12 @@ require_relative 'builder'
 module RPiet
   module IR
     class IRInterpreter
-      def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
+      def initialize(image, event_handler=RPiet::Logger::NoOutput.new, print)
         @event_handler = event_handler
         graph = RPiet::Parser.new(image).run
+        graph.print if print == :graph || print == :all
         builder = RPiet::Builder.new
+        builder.print if print == :ir || print == :all
         builder.run graph
         @instructions = builder.instructions
         @stack = []

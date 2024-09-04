@@ -4,8 +4,8 @@ module RPiet
   ##
   # Perform common mathematical binary operation
   class MathNode < Node
-    def initialize(step, x, y, operation)
-      super(step, x, y)
+    def initialize(group, step, x, y, operation)
+      super(group, step, x, y)
       @operation = operation
     end
 

@@ -5,8 +5,8 @@ module RPiet
   ##
   # Subtract two values from stack
   class SubNode < MathNode
-    def initialize(step, x, y)
-      super(step, x, y, :-)
+    def initialize(group, step, x, y)
+      super(group, step, x, y, :-)
     end
   end
 end

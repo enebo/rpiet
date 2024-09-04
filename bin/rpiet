@@ -3,6 +3,7 @@
 require 'optparse'
 require 'rpiet'
 
+print = nil
 run = :chowder
 time_execution = false
 codel_size = 1
@@ -11,6 +12,18 @@ log = RPiet::Logger::NoOutput
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} -d image_file"
 
+  opts.on("-p", "--print type", "print data") do |output|
+    print = case output
+    when 'graph'
+      :graph
+    when 'ir'
+      :ir
+    when 'all'
+      :all
+    else
+      raise ArgumentError.new("invalid print options: #{output}")
+    end
+  end
   opts.on("-t", "--time", "time execution") { time_execution = true }
   opts.on("-g", "--graph", "execute AST(graph)") { run = :graph }
   opts.on("-i", "--ir", "execute IR(list)") { run = :ir }
@@ -52,10 +65,10 @@ end
 runner = case run
   when :graph
     require 'rpiet/graph_interpreter'
-    RPiet::GraphInterpreter.new(image, log.new)
+    RPiet::GraphInterpreter.new(image, log.new, print)
   when :ir
     require 'rpiet/ir/ir_interpreter'
-    RPiet::IR::IRInterpreter.new(image, log.new)
+    RPiet::IR::IRInterpreter.new(image, log.new, print)
   else
     RPiet::Interpreter.new(image, log.new)
 end

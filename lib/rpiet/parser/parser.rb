@@ -41,7 +41,7 @@ module RPiet
       @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
       @work_list = []
       @already_visited = {}  # state => node
-      @graph = Node.create(@step, @x, @y, :noop)
+      @graph = Node.create(@source.group_at(@x, @y), @step, @x, @y, :noop)
     end
 
     def run
@@ -104,19 +104,19 @@ module RPiet
           @step += 1
 
           if @current_state.dp_ordinal != @pvm.dp.ordinal
-            node = Node.create(@step, nx, ny, :dp, @pvm.cc.ordinal, @pvm.dp.ordinal)
+            node = Node.create(@source.group_at(@x, @y), @step, nx, ny, :dp, @pvm.cc.ordinal, @pvm.dp.ordinal)
             @current_state.node.add_path(node, @current_state.cc_ordinal, @current_state.dp_ordinal)
             @current_state.node = node
             @already_visited[@current_state] = node
           end
           if @current_state.cc_ordinal != @pvm.cc.ordinal
-            node = Node.create(@step, nx, ny, :cc, @pvm.cc.ordinal, @pvm.dp.ordinal)
+            node = Node.create(@source.group_at(@x, @y), @step, nx, ny, :cc, @pvm.cc.ordinal, @pvm.dp.ordinal)
             @current_state.node.add_path(node, @current_state.cc_ordinal, @current_state.dp_ordinal)
             @current_state.node = node
             @already_visited[@current_state] = node unless @already_visited[@current_state]
           end
 
-          node = Node.create(@step, nx, ny, operation, @pvm.block_value)
+          node = Node.create(@source.group_at(@x, @y), @step, nx, ny, operation, @pvm.block_value)
           @current_state.node.add_path(node, @current_state.cc_ordinal, @current_state.dp_ordinal)
           @already_visited[@current_state] = node unless @already_visited[@current_state]
 

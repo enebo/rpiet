@@ -3,10 +3,10 @@ module RPiet
   # Base class of all nodes
   class Node
     attr_reader :next_node
-    attr_reader :step, :x, :y
+    attr_reader :group, :step, :x, :y
 
-    def initialize(step, x, y)
-      @step, @x, @y = step, x, y
+    def initialize(group,  step, x, y)
+      @group, @step, @x, @y = group, step, x, y
     end
 
     def visit(visitor)
@@ -20,7 +20,7 @@ module RPiet
 
     # What possible paths can this node navigate to next
     def paths
-      [@next_node]
+      @next_node ? [@next_node] : []
     end
 
     def add_path(node, *)
@@ -47,12 +47,21 @@ module RPiet
     end
     alias :to_s :inspect
 
-    def self.create(step, x, y, operation, *extra_args)
+    def id
+      inspect
+    end
+    def dot
+      require_relative 'dot_visitor'
+      visitor = DotVisitor.new
+      visitor.run(self)
+    end
+
+    def self.create(group, step, x, y, operation, *extra_args)
       klazz = Nodes[Operations.find_index(operation)]
       if operation == :push || operation == :dp || operation == :cc
-        klazz.new step, x, y, *extra_args
+        klazz.new group, step, x, y, *extra_args
       else
-        klazz.new step, x, y
+        klazz.new group, step, x, y
       end
     end
 

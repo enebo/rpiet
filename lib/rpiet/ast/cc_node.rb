@@ -7,8 +7,8 @@ module RPiet
   class CcNode < Node
     attr_reader :value
 
-    def initialize(step, x, y, cc_ordinal, dp_ordinal)
-      super(step, x, y)
+    def initialize(group, step, x, y, cc_ordinal, dp_ordinal)
+      super(group, step, x, y)
       @value = cc_ordinal
     end
 

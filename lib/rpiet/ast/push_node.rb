@@ -6,8 +6,8 @@ module RPiet
   class PushNode < Node
     attr_reader :value
 
-    def initialize(step, x, y, value)
-      super(step, x, y)
+    def initialize(group, step, x, y, value)
+      super(group, step, x, y)
       @value = value
     end
 
