@@ -1,9 +1,9 @@
-require_relative '../ast'
+require_relative '../asg'
 require_relative 'parser'
 require 'pp'
 
 module RPiet
-  module AST
+  module ASG
     class GraphInterpreter
       attr_reader :pvm
 

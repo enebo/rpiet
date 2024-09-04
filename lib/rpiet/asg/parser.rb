@@ -2,10 +2,10 @@ require_relative '../color'
 require_relative '../machine'
 require_relative '../source'
 require_relative '../event_handler'
-require_relative '../ast'
+require_relative '../asg'
 
 module RPiet
-  module AST
+  module ASG
     class Parser
       ##
       # Represents the transition to the next possible group from

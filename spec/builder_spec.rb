@@ -1,5 +1,5 @@
 require_relative 'spec_helper'
-require_relative '../lib/rpiet/ast/parser'
+require_relative '../lib/rpiet/asg/parser'
 require_relative '../lib/rpiet/ir/builder'
 
 describe "RPiet::Builder" do
@@ -12,7 +12,7 @@ db db db
   end
 
   it "can visit all nodes once plus one extra visit for a cycle" do
-    graph = RPiet::AST::Parser.new(cycle).run
+    graph = RPiet::ASG::Parser.new(cycle).run
     builder = RPiet::Builder.new
     builder.run graph
     #p builder.instructions

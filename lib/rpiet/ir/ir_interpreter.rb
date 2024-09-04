@@ -1,4 +1,4 @@
-require_relative '../ast/parser'
+require_relative '../asg/parser'
 require_relative 'builder'
 
 module RPiet

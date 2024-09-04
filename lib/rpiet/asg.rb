@@ -1,5 +1,5 @@
 module RPiet
-  module AST
+  module ASG
     ##
     # Base class of all nodes
     class Node

@@ -1,4 +1,4 @@
-require_relative '../ast/visitor'
+require_relative '../asg/visitor'
 require_relative 'instructions'
 require_relative 'operands'
 

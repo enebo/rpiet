@@ -51,8 +51,8 @@ end
 
 runner = case run
   when :graph
-    require 'rpiet/ast/graph_interpreter'
-    RPiet::AST::GraphInterpreter.new(image, log.new)
+    require 'rpiet/asg/graph_interpreter'
+    RPiet::ASG::GraphInterpreter.new(image, log.new)
   when :ir
     require 'rpiet/ir/ir_interpreter'
     RPiet::IR::IRInterpreter.new(image, log.new)
