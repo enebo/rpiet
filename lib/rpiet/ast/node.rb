@@ -1,8 +1,12 @@
+require_relative 'optimizer'
+
 module RPiet
   ##
   # Base class of all nodes
   class Node
-    attr_reader :next_node
+    include Optimizer
+
+    attr_accessor :next_node
     attr_reader :step, :x, :y
 
     def initialize(step, x, y)

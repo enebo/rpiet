@@ -15,6 +15,7 @@ module RPiet
     end
 
     def next_step
+      puts "NODE: #{@node}"
       @node = @node.exec @pvm
     end
 
