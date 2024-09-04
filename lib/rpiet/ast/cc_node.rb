@@ -7,17 +7,13 @@ module RPiet
   class CcNode < Node
     attr_reader :value
 
-    def initialize(step, x, y, cc_ordinal, dp_ordinal)
+    def initialize(step, x, y, cc_ordinal, *)
       super(step, x, y)
       @value = cc_ordinal
     end
 
-    def hidden?
-      true
-    end
+    def hidden? = true
 
-    def execute(machine)
-      machine.cc.from_ordinal!(@value)
-    end
+    def execute(machine) = machine.cc.from_ordinal!(@value)
   end
 end

@@ -4,9 +4,7 @@ module RPiet
   # Rotate the direction based on top stack value and
   # change execution flow.
   class PntrNode < Node
-    def branch?
-      true
-    end
+    def branch? = true
 
     def add_path(node, _, dp_value)
       @values ||= []
@@ -14,9 +12,7 @@ module RPiet
     end
 
     # What possible paths can this node navigate to next
-    def paths
-      @values
-    end
+    def paths = @values
 
     def execute(machine)
       top = machine.stack.pop

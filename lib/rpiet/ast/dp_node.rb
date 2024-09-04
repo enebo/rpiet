@@ -7,17 +7,13 @@ module RPiet
   class DpNode < Node
     attr_reader :value
 
-    def initialize(step, x, y, cc_ordinal, dp_ordinal)
+    def initialize(step, x, y, _, dp_ordinal)
       super(step, x, y)
       @value = dp_ordinal
     end
 
-    def hidden?
-      true
-    end
+    def hidden? = true
 
-    def execute(machine)
-      machine.dp.from_ordinal!(@value)
-    end
+    def execute(machine) = machine.dp.from_ordinal!(@value)
   end
 end

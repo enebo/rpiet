@@ -5,8 +5,6 @@ module RPiet
   ##
   # Add two values from stack
   class DivNode < MathNode
-    def initialize(step, x, y)
-      super(step, x, y, :/)
-    end
+    def initialize(step, x, y, *)= super(step, x, y, :/)
   end
 end

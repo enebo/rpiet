@@ -5,8 +5,6 @@ module RPiet
   ##
   # Multiply two values from stack
   class MultNode < MathNode
-    def initialize(step, x, y)
-      super(step, x, y, :*)
-    end
+    def initialize(step, x, y, *)= super(step, x, y, :*)
   end
 end

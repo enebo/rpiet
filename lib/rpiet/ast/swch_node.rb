@@ -6,9 +6,7 @@ module RPiet
   # Rotate the codel chooser based on top stack value and
   # change execution flow.
   class SwchNode < Node
-    def branch?
-      true
-    end
+    def branch? = true
 
     def add_path(node, cc, _)
       if cc == RPiet::CodelChooser::LEFT
@@ -19,9 +17,7 @@ module RPiet
     end
 
     # What possible paths can this node navigate to next
-    def paths
-      [@left, @right]
-    end
+    def paths = [@left, @right]
 
     def execute(machine)
       top = machine.stack.pop

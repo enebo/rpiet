@@ -11,8 +11,6 @@ module RPiet
       @value = value
     end
 
-    def execute(machine)
-      machine.stack << @value
-    end
+    def execute(machine) = machine.stack << @value
   end
 end
