@@ -1,5 +1,4 @@
 require 'set'
-require_relative 'node'
 
 module RPiet
   # Generic visitor for visiting all nodes in the graph once but

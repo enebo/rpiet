@@ -1,5 +1,5 @@
 require 'jruby'
-require_relative '../parser/parser'
+require_relative '../parser/ser'
 require_relative 'builder'
 
 module Kernel

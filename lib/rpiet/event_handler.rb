@@ -24,6 +24,9 @@ module RPiet
 
     def operation(runtime, operation)
     end
+
+    def instruction(runtime, instruction)
+    end
   end
 
   module Logger

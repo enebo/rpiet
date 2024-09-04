@@ -1,4 +1,4 @@
-require_relative 'parser/parser'
+require_relative 'ast/parser'
 require 'pp'
 
 module RPiet
@@ -6,7 +6,7 @@ module RPiet
     attr_reader :pvm
 
     def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
-      @graph = RPiet::Parser.new(image, event_handler).run.optimize
+      @graph = RPiet::AST::Parser.new(image, event_handler).run
     end
 
     def reset

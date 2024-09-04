@@ -1,4 +1,4 @@
-require_relative '../parser/parser'
+require_relative '../ast/parser'
 require_relative 'builder'
 
 module RPiet
@@ -6,7 +6,7 @@ module RPiet
     class IRInterpreter
       def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
         @event_handler = event_handler
-        graph = RPiet::Parser.new(image).run.optimize
+        graph = RPiet::AST::Parser.new(image).run
         builder = RPiet::Builder.new
         builder.run graph
         @instructions = builder.instructions

@@ -1,4 +1,4 @@
-require_relative '../lib/rpiet/parser/parser'
+require_relative '../lib/rpiet/ast/parser'
 require_relative '../lib/rpiet/ast/visitor'
 require_relative '../lib/rpiet/image/ascii_image'
 
@@ -34,7 +34,7 @@ db db db
   end
 
   it "can visit all nodes once plus one extra visit for a cycle" do
-    my_visitor.run RPiet::Parser.new(cycle).run
+    my_visitor.run RPiet::AST::Parser.new(cycle).run
     expect(my_visitor.nodes.size).to eq(11)
     expect(my_visitor.nodes.values.inject(0) { |s, e| s += e; s}).to eq(12) # 1 node visited twice
   end
