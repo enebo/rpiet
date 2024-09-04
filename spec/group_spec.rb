@@ -2,8 +2,6 @@ require_relative 'spec_helper'
 require 'rpiet/group'
 require 'rpiet/color'
 
-include SpecHelper
-
 describe "Group" do
   SQUARE = <<-EOS
 .###.

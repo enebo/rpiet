@@ -28,3 +28,7 @@ module SpecHelper
     RPiet::Group.new(color, *ascii_to_group_points(string)).tap { |g| g.calculate_corners }
   end
 end
+
+RSpec.configure do |c|
+  c.include SpecHelper
+end
