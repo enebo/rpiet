@@ -1,5 +1,5 @@
 require_relative 'spec_helper'
-require_relative '../lib/rpiet/graph_interpreter'
+require_relative '../lib/rpiet/ast/graph_interpreter'
 require_relative '../lib/rpiet/interpreter'
 
 describe "RPiet Runtimes" do
@@ -68,7 +68,7 @@ nb .. .. ++ ++
     EOS
   end
 
-  [RPiet::Interpreter, RPiet::GraphInterpreter].each do |runtime|
+  [RPiet::Interpreter, RPiet::AST::GraphInterpreter].each do |runtime|
     describe runtime do
       it "Can push and pop" do
         interpreter = runtime.new push_pop
