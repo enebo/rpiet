@@ -12,6 +12,10 @@ module RPiet
       @value = cc_ordinal
     end
 
+    def hidden?
+      true
+    end
+
     def execute(machine)
       machine.cc.from_ordinal!(@value)
     end

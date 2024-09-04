@@ -50,7 +50,7 @@ module RPiet
         restore_state(@work_list.pop)
         next_step
       end
-      @graph.optimize
+      @graph
     end
 
     ##

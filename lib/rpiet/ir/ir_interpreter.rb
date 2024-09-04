@@ -6,7 +6,7 @@ module RPiet
     class IRInterpreter
       def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
         @event_handler = event_handler
-        graph = RPiet::Parser.new(image).run
+        graph = RPiet::Parser.new(image).run.optimize
         builder = RPiet::Builder.new
         builder.run graph
         @instructions = builder.instructions

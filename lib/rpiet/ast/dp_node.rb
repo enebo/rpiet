@@ -12,6 +12,10 @@ module RPiet
       @value = dp_ordinal
     end
 
+    def hidden?
+      true
+    end
+
     def execute(machine)
       machine.dp.from_ordinal!(@value)
     end

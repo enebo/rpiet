@@ -46,6 +46,14 @@ module RPiet
       next_node
     end
 
+    ##
+    # Is this node hidden from the perspective of calling next_step?
+    # In simpler interpreter cc and dp will change during next_step while
+    # in graph and ir interpreters they are explicit actions.
+    def hidden?
+      false
+    end
+
     def inspect
       "p##{@step} [#{@x}, #{@y}](#{operation})"
     end

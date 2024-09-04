@@ -6,7 +6,7 @@ module RPiet
     attr_reader :pvm
 
     def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
-      @graph = RPiet::Parser.new(image, event_handler).run
+      @graph = RPiet::Parser.new(image, event_handler).run.optimize
     end
 
     def reset
@@ -15,7 +15,9 @@ module RPiet
     end
 
     def next_step
-      puts "NODE: #{@node}"
+      while @node.hidden?
+        @node = @node.exec @pvm
+      end
       @node = @node.exec @pvm
     end
 
