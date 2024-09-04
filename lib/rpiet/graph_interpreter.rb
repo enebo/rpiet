@@ -4,7 +4,7 @@ require 'pp'
 module RPiet
   class GraphInterpreter
     attr_reader :pvm
-    
+
     def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
       @graph = RPiet::Parser.new(image, event_handler).run
       @pvm = RPiet::Machine.new
@@ -19,9 +19,13 @@ module RPiet
       @node = @node.exec @pvm
     end
 
+    def running?
+      @node
+    end
+
     def run
       reset
-      while @node do
+      while running? do
         next_step
       end
     end
