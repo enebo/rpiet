@@ -7,7 +7,6 @@ module RPiet
 
     def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
       @graph = RPiet::Parser.new(image, event_handler).run
-      @pvm = RPiet::Machine.new
     end
 
     def reset
