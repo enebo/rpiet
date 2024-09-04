@@ -1,4 +1,4 @@
-require 'rpiet/cycle'
+require_relative '../lib/rpiet/cycle'
 
 module A
   extend RPiet::CycleMethod

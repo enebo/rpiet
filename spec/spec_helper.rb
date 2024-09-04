@@ -1,4 +1,5 @@
 require_relative '../lib/rpiet/group'
+require_relative '../lib/rpiet/image/ascii_image'
 
 module SpecHelper
   ##
@@ -26,6 +27,10 @@ module SpecHelper
 
   def create_group(color, string)
     RPiet::Group.new(color, *ascii_to_group_points(string)).tap { |g| g.calculate_corners }
+  end
+
+  def create_image(string, *r)
+    RPiet::Image::AsciiImage.new string, *r
   end
 end
 

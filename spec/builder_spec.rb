@@ -1,10 +1,10 @@
-require 'rpiet/parser/parser'
-require 'rpiet/ir/builder'
-require 'rpiet/image/ascii_image'
+require_relative 'spec_helper'
+require_relative '../lib/rpiet/parser/parser'
+require_relative '../lib/rpiet/ir/builder'
 
 describe "RPiet::Builder" do
   let(:cycle) do
-    RPiet::Image::AsciiImage.new <<-EOS
+    create_image <<-EOS
 nb db nb
 db ++ nb
 db db db
@@ -15,6 +15,6 @@ db db db
     graph = RPiet::Parser.new(cycle).run
     builder = RPiet::Builder.new
     builder.run graph
-    p builder.instructions
+    #p builder.instructions
   end
 end

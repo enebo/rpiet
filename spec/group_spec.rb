@@ -1,6 +1,6 @@
 require_relative 'spec_helper'
-require 'rpiet/group'
-require 'rpiet/color'
+require_relative '../lib/rpiet/group'
+require_relative '../lib/rpiet/color'
 
 describe "Group" do
   SQUARE = <<-EOS

@@ -1,4 +1,4 @@
-require 'rpiet/direction_pointer'
+require_relative '../lib/rpiet/direction_pointer'
 
 describe "DirectionPointer" do
   it "can rotate" do

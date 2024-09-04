@@ -1,10 +1,10 @@
-require 'rpiet/source'
-require 'rpiet/image/ascii_image'
-require 'rpiet/color'
+require_relative 'spec_helper'
+require_relative '../lib/rpiet/source'
+require_relative '../lib/rpiet/color'
 
 describe "RPiet::Source" do
   let(:image1) do
-    RPiet::Image::AsciiImage.new <<-EOS
+    create_image <<-EOS
 nb db db db ly
 nb db db ly ly
 ng db db ly ly
@@ -15,7 +15,7 @@ ng lg lg lg ++
   end
 
   let(:image2) do
-    RPiet::Image::AsciiImage.new <<-EOS, 2
+    create_image <<-EOS, 2
 db db ly ly
 db db ly ly
 ++ ++ ly ly

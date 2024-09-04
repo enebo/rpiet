@@ -1,4 +1,4 @@
-require 'rpiet/machine'
+require_relative '../lib/rpiet/machine'
 
 describe "RPiet::Machine" do
   it "can roll" do
