@@ -2,26 +2,16 @@ module RPiet
   module IR
     module Instructions
       class Instr
-        def operation
-          self.class.operation_name.to_sym
-        end
+        def operation = self.class.operation_name.to_sym
         alias :name :operation
 
-        def execute(stack)
-          raise ArgumentError.new "Cannot execute a base class"
-        end
+        def execute(stack) = raise ArgumentError.new "Cannot execute a base class"
 
-        def jump?
-          false
-        end
+        def jump? = false
 
-        def to_s
-          operation
-        end
+        def to_s = operation
 
-        def self.operation_name
-          name.sub(/.*::/, '').sub('Instr', '').downcase
-        end
+        def self.operation_name = name.sub(/.*::/, '').sub('Instr', '').downcase
       end
 
       class NoopInstr < Instr
@@ -36,9 +26,7 @@ module RPiet
           @operand = operand
         end
 
-        def to_s
-          "#{name}(#{operand}}"
-        end
+        def to_s = "#{name}(#{operand}}"
       end
 
       class SingleResultInstr < Instr
@@ -48,9 +36,7 @@ module RPiet
           @result = result
         end
 
-        def to_s
-          "#{result} = #{name}"
-        end
+        def to_s = "#{result} = #{name}"
       end
 
       class MathInstr < Instr
@@ -64,33 +50,31 @@ module RPiet
           result.encode = operand1.decode.send(oper, operand2.decode)
         end
 
-        def to_s
-          "#{result} = #{operand1} #{oper} #{operand2}"
-        end
+        def to_s = "#{result} = #{operand1} #{oper} #{operand2}"
       end
 
       class AddInstr < MathInstr
-        def initialize(result, operand1, operand2); super(:+, result, operand1, operand2); end
+        def initialize(result, operand1, operand2) = super(:+, result, operand1, operand2)
       end
 
       class SubInstr < MathInstr
-        def initialize(result, operand1, operand2); super(:-, result, operand1, operand2); end
+        def initialize(result, operand1, operand2) = super(:-, result, operand1, operand2)
       end
 
       class MultInstr < MathInstr
-        def initialize(result, operand1, operand2); super(:*, result, operand1, operand2); end
+        def initialize(result, operand1, operand2) = super(:*, result, operand1, operand2)
       end
 
       class DivInstr < MathInstr
-        def initialize(result, operand1, operand2); super(:/, result, operand1, operand2); end
+        def initialize(result, operand1, operand2) = super(:/, result, operand1, operand2)
       end
 
       class ModInstr < MathInstr
-        def initialize(result, operand1, operand2); super(:%, result, operand1, operand2); end
+        def initialize(result, operand1, operand2) = super(:%, result, operand1, operand2)
       end
 
       class PowInstr < MathInstr
-        def initialize(result, operand1, operand2); super(:**, result, operand1, operand2); end
+        def initialize(result, operand1, operand2) = super(:**, result, operand1, operand2)
       end
 
       class CopyInstr < Instr
@@ -104,9 +88,7 @@ module RPiet
           @result.encode = operand.decode
         end
 
-        def to_s
-          "#{result} = #{name} #{operand}"
-        end
+        def to_s = "#{result} = #{name} #{operand}"
       end
 
       class LabelInstr < NoopInstr
@@ -116,22 +98,16 @@ module RPiet
           @value = value
         end
 
-        def to_s
-          "#{name}(#{value})"
-        end
+        def to_s = "#{name}(#{value})"
       end
 
       # input/output instructions
       class NoutInstr < SingleOperandInstr
-        def execute(stack)
-          print operand.decode
-        end
+        def execute(stack) = print operand.decode
       end
 
       class CoutInstr < SingleOperandInstr
-        def execute(stack)
-          print operand.decode.chr
-        end
+        def execute(stack) = print operand.decode.chr
       end
 
       class NinInstr < SingleResultInstr
@@ -155,9 +131,7 @@ module RPiet
       end
 
       class PushInstr < SingleOperandInstr
-        def execute(stack)
-          stack.push operand.decode
-        end
+        def execute(stack) = stack.push operand.decode
       end
 
       class RollInstr < Instr
@@ -178,27 +152,19 @@ module RPiet
           end
         end
 
-        def to_s
-          "#{name}(#{depth}, #{num})"
-        end
+        def to_s = "#{name}(#{depth}, #{num})"
       end
 
       # possible jumping instructions
       class JumpInstr < LabelInstr
 
-        def jump?
-          true
-        end
+        def jump? = true
 
-        def execute(stack)
-          label
-        end
+        def execute(stack) = label
 
         alias :label :value
 
-        def to_s
-          "#{name} -> #{value}"
-        end
+        def to_s = "#{name} -> #{value}"
       end
 
       class TwoOperandJumpInstr < JumpInstr
@@ -209,33 +175,22 @@ module RPiet
           @operand1, @operand2 = operand1, operand2
         end
 
-        def to_s
-          "#{operand1} #{doc_syntax} #{operand2} -> #{label}"
-        end
+        def to_s = "#{operand1} #{doc_syntax} #{operand2} -> #{label}"
       end
 
       class BEQInstr < TwoOperandJumpInstr
-        def doc_syntax; "=="; end
-        def execute(stack)
-          return super if operand1.decode == operand2.decode
-          nil
-        end
+        def doc_syntax = "=="
+        def execute(stack) = operand1.decode == operand2.decode ? super : nil
       end
 
       class BNEInstr < TwoOperandJumpInstr
-        def doc_syntax; "!="; end
-        def execute(stack)
-          return super if operand1.decode != operand2.decode
-          nil
-        end
+        def doc_syntax = "!="
+        def execute(stack) = operand1.decode != operand2.decode ? super : nil
       end
 
       class GTInstr  < TwoOperandJumpInstr
-        def doc_syntax; ">"; end
-        def execute(stack)
-          return super if operand1.decode > operand2.decode
-          nil
-        end
+        def doc_syntax = ">"
+        def execute(stack) = operand1.decode > operand2.decode ? super : nil
       end
 
       class NodeInstr < Instr
@@ -249,9 +204,7 @@ module RPiet
           #puts "DEBUG: #{self}"
         end
 
-        def to_s
-          "node = [#{operation}, #{step}, #{x}, #{y}]"
-        end
+        def to_s = "node = [#{operation}, #{step}, #{x}, #{y}]"
       end
     end
   end

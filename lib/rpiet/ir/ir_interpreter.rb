@@ -6,7 +6,7 @@ module RPiet
     class IRInterpreter
       def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
         @event_handler = event_handler
-        graph = RPiet::AST::Parser.new(image).run
+        graph = RPiet::ASG::Parser.new(image).run
         builder = RPiet::Builder.new
         builder.run graph
         @instructions = builder.instructions
@@ -23,16 +23,15 @@ module RPiet
       end
 
       def run
-        i = 0
+        ipc = 0
         loop do
-          instr = @instructions[i]
-          break unless instr  # nil represent end of execution
+          instr = @instructions[ipc] || break
           @event_handler.instruction(self, instr)
           value = instr.execute(@stack)
           if instr.jump? && value
-            i = @jump_table[value]
+            ipc = @jump_table[value]
           else
-            i += 1
+            ipc += 1
           end
         end
       end
