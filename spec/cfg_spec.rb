@@ -23,7 +23,7 @@ nb db ++ lr ++
   end
 
   it "can visit all nodes once plus one extra visit for a cycle" do
-    graph = RPiet::ASG::Parser.new(cycle).run
+    graph = RPiet::ASG::Parser.new(push_divide).run
     builder = RPiet::Builder.new
     builder.run graph
     cfg = RPiet::IR::CFG.new(builder.instructions)

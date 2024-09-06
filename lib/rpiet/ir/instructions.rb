@@ -2,6 +2,8 @@ module RPiet
   module IR
     module Instructions
       class Instr
+        attr_accessor :comment
+
         def operation = self.class.operation_name.to_sym
         alias :name :operation
 
@@ -28,7 +30,7 @@ module RPiet
           @operand = operand
         end
 
-        def to_s = "#{name}(#{operand}}"
+        def to_s = "#{super}(#{operand})"
       end
 
       class SingleResultInstr < Instr
@@ -38,7 +40,7 @@ module RPiet
           @result = result
         end
 
-        def to_s = "#{result} = #{name}"
+        def to_s = "#{result} = #{super}"
       end
 
       class MathInstr < Instr
@@ -90,7 +92,7 @@ module RPiet
           @result.encode = operand.decode
         end
 
-        def to_s = "#{result} = #{name} #{operand}"
+        def to_s = "#{result} = #{super} #{operand}#{comment ? %Q{ # #{comment}} : ""}"
       end
 
       class LabelInstr < NoopInstr
@@ -100,7 +102,7 @@ module RPiet
           @value = value
         end
 
-        def to_s = "#{name}(#{value})"
+        def to_s = "#{super}(#{value})"
       end
 
       # input/output instructions
@@ -154,7 +156,7 @@ module RPiet
           end
         end
 
-        def to_s = "#{name}(#{depth}, #{num})"
+        def to_s = "#{super}(#{depth}, #{num})"
       end
 
       # possible jumping instructions
@@ -166,7 +168,7 @@ module RPiet
 
         alias :label :value
 
-        def to_s = "#{name} -> #{value}"
+        def to_s = "#{super} -> #{value}"
       end
 
       class TwoOperandJumpInstr < JumpInstr

@@ -21,7 +21,7 @@ module RPiet
         attr_accessor :value
         def initialize(name); @name = name; end
         def name; @name; end
-        def to_s; "#@name:(#@value)" end
+        def to_s; "#@name#{@value ? %Q{: (#@value)} : ''}" end
 
         alias :decode :value
         alias :encode= :value=
