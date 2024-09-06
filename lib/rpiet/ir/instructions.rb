@@ -79,7 +79,7 @@ module RPiet
         def initialize(result, operand1, operand2) = super(:**, result, operand1, operand2)
       end
 
-      class CopyInstr < Instr
+      class IntegerInstr < Instr
         attr_reader :result, :operand
 
         def initialize(result, operand)

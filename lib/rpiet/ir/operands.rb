@@ -5,7 +5,7 @@ module RPiet
         attr_reader :value
         def initialize(value); @value = value; end
         def name; :num; end
-        def to_s; "#{name}(#{value})"; end
+        def to_s; value.to_s; end
 
         alias :decode :value
       end

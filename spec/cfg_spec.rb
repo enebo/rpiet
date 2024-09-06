@@ -26,7 +26,6 @@ nb db ++ lr ++
     graph = RPiet::ASG::Parser.new(cycle).run
     builder = RPiet::Builder.new
     builder.run graph
-    cfg = RPiet::IR::CFG.new
-    cfg.build(builder.instructions)
+    cfg = RPiet::IR::CFG.new(builder.instructions)
   end
 end

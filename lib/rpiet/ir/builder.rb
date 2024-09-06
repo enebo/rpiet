@@ -20,8 +20,8 @@ module RPiet
       @variable_counter = 0
       @dp, @cc = VariableOperand.new('%dp'), VariableOperand.new('%cc')
       @current_node = nil
-      add CopyInstr.new(@dp, num(0))
-      add CopyInstr.new(@cc, num(-1))
+      add IntegerInstr.new(@dp, num(0))
+      add IntegerInstr.new(@cc, num(-1))
     end
 
     def visit_first(node)
@@ -133,68 +133,68 @@ module RPiet
 
     def instructions_for(node)
       case node.operation
-        when :noop then add NoopInstr.new
-        when :push then add push(num(node.value))
-        when :pop then variables(1) { |variable| add PopInstr.new variable }
-        when :add then bin_op AddInstr
-        when :sub then bin_op SubInstr
-        when :mult then bin_op MultInstr
-        when :div then bin_op DivInstr
-        when :mod then bin_op ModInstr
-        when :nout then unary_op NoutInstr, result: false
-        when :cout then unary_op CoutInstr, result: false
-        when :gtr then
-          variables(2) do |variable1, variable2|
-            add PopInstr.new variable2
-            add PopInstr.new variable1
-            true_label, end_label = LabelInstr.new('true'), LabelInstr.new('end')
-            add GTInstr.new variable1, variable2, true_label
-            add push(num(0))
-            add JumpInstr.new end_label
-            add true_label
-            add push(num(1))
-            add end_label
-          end
-        when :not then # REWRITE AS BEQ/BNE
-          variables(1) do |variable|
-            add PopInstr.new variable
-            false_label, end_label = LabelInstr.new('false'), LabelInstr.new('end')
-            add BNEInstr.new variable, num(0), false_label
-            add push(num(1))
-            add JumpInstr.new end_label
-            add false_label
-            add push(num(0))
-            add end_label
-          end
-        when :dup then
-          variables(1) do |variable|
-            add PopInstr.new(variable)
-            add push(variable)
-            add push(variable)
-          end
-        when :cin then
-          # Can be written in terms in nin
-          variables(1) do |variable|
-            add CoutInstr.new string("> ")
-            add CinInstr.new variable
-            add push(variable)
-          end
-        when :nin then
-          variables(1) do |variable|
-            add CoutInstr.new string("Enter an integer: ")
-            add NinInstr.new variable
-            add push(variable)
-          end
-        when :swch then
-          @in_branch_oper, @in_branch = :swch, -1
-        when :roll then
-          variables(2) do |variable1, variable2|
-            add PopInstr.new variable2
-            add PopInstr.new variable1
-            add RollInstr.new variable1, variable2
-          end
-        when :cc then add CopyInstr.new(@cc, num(node.value))
-        when :dp then add CopyInstr.new(@dp, num(node.value))
+      when :noop then add NoopInstr.new
+      when :push then add push(num(node.value))
+      when :pop then variables(1) { |variable| add PopInstr.new variable }
+      when :add then bin_op AddInstr
+      when :sub then bin_op SubInstr
+      when :mult then bin_op MultInstr
+      when :div then bin_op DivInstr
+      when :mod then bin_op ModInstr
+      when :nout then unary_op NoutInstr, result: false
+      when :cout then unary_op CoutInstr, result: false
+      when :gtr then
+        variables(2) do |variable1, variable2|
+          add PopInstr.new variable2
+          add PopInstr.new variable1
+          true_label, end_label = LabelInstr.new('true'), LabelInstr.new('end')
+          add GTInstr.new variable1, variable2, true_label
+          add push(num(0))
+          add JumpInstr.new end_label
+          add true_label
+          add push(num(1))
+          add end_label
+        end
+      when :not then # REWRITE AS BEQ/BNE
+        variables(1) do |variable|
+          add PopInstr.new variable
+          false_label, end_label = LabelInstr.new('false'), LabelInstr.new('end')
+          add BNEInstr.new variable, num(0), false_label
+          add push(num(1))
+          add JumpInstr.new end_label
+          add false_label
+          add push(num(0))
+          add end_label
+        end
+      when :dup then
+        variables(1) do |variable|
+          add PopInstr.new(variable)
+          add push(variable)
+          add push(variable)
+        end
+      when :cin then
+        # Can be written in terms in nin
+        variables(1) do |variable|
+          add CoutInstr.new string("> ")
+          add CinInstr.new variable
+          add push(variable)
+        end
+      when :nin then
+        variables(1) do |variable|
+          add CoutInstr.new string("Enter an integer: ")
+          add NinInstr.new variable
+          add push(variable)
+        end
+      when :swch then
+        @in_branch_oper, @in_branch = :swch, -1
+      when :roll then
+        variables(2) do |variable1, variable2|
+          add PopInstr.new variable2
+          add PopInstr.new variable1
+          add RollInstr.new variable1, variable2
+        end
+      when :cc then add IntegerInstr.new(@cc, num(node.value))
+      when :dp then add IntegerInstr.new(@dp, num(node.value))
       end
     end
 

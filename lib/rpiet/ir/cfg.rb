@@ -5,32 +5,27 @@ require 'rgl/dot'
 module RPiet
   module IR
     class BasicBlock
-      attr_reader :label, :instructions
+      attr_reader :label, :instrs
 
       def initialize(label)
-        @label = label
-        @instructions = []
+        @label, @instrs = label, []
       end
 
-      def add_instr(instr)
-        @instructions << instr
-      end
+      def add_instr(instr) = @instrs << instr
 
       # Maybe a bit hacky but inspect is for dot output. consider changing this.
       def inspect
-        str = "name: #{@label}\\l"
-        unless @instructions.empty?
-          str << "#{@instructions.map { |i| "  #{i}" }.join("\\l")}\\l"
-        end
+        str = "name: #{@label}\n\n"
+        str << "#{@instrs.map {|i| i}.join('\l')}\\l" if !@instrs.empty?
         str
       end
       alias :to_s :inspect
     end
 
     class CFG
-      def initialize
-        @graph = RGL::DirectedAdjacencyGraph.new
-        @bb_map = {}
+      def initialize(instrs)
+        @graph, @bb_map = RGL::DirectedAdjacencyGraph.new, {}
+        build(instrs)
       end
 
       def new_bb(label)
