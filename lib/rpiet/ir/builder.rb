@@ -82,7 +82,7 @@ module RPiet
       label = @jump_labels[node]
 
       unless label  # first time to insert label
-        label = LabelInstr.new(node.operation.to_s)
+        label = LabelInstr.new(node.object_id)
         @jump_labels[node] = label
         index = @instructions.find_index(@node_mappings[node])
         @instructions.insert index, label
@@ -113,8 +113,7 @@ module RPiet
     end
 
     def variables(count)
-      variables = []
-      count.times { variables << acquire_variable }
+      variables = Array.new(count) { |_| acquire_variable }
       yield *variables
     ensure
       variables.each { |variable| return_variable variable }

@@ -17,6 +17,8 @@ module RPiet
       class NoopInstr < Instr
         def execute(stack)
         end
+
+        def to_s = "noop"
       end
 
       class SingleOperandInstr < Instr
