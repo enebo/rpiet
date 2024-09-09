@@ -3,13 +3,22 @@ module RPiet
     module Instructions
       class Instr
         attr_accessor :comment
+        attr_reader :operands
 
         def operation = self.class.operation_name.to_sym
         alias :name :operation
 
+        def initialize(*operands)
+          @operands = operands
+        end
+
         def execute(stack) = raise ArgumentError.new "Cannot execute a base class"
 
         def jump? = false
+
+        def side_effect? = false
+
+        def stack_affecting? = false
 
         def to_s = operation
 
@@ -17,6 +26,10 @@ module RPiet
       end
 
       class NoopInstr < Instr
+        def initialize()
+          super()
+        end
+
         def execute(stack)
         end
 
@@ -24,11 +37,11 @@ module RPiet
       end
 
       class SingleOperandInstr < Instr
-        attr_reader :operand
-
         def initialize(operand)
-          @operand = operand
+          super(operand)
         end
+
+        def operand = @operands[0]
 
         def to_s = "#{super}(#{operand})"
       end
@@ -37,6 +50,7 @@ module RPiet
         attr_reader :result
 
         def initialize(result)
+          super()
           @result = result
         end
 
@@ -44,14 +58,23 @@ module RPiet
       end
 
       class MathInstr < Instr
-        attr_reader :oper, :result, :operand1, :operand2
+        attr_reader :oper, :result
 
         def initialize(oper, result, operand1, operand2)
-          @oper, @result, @operand1, @operand2 = oper, result, operand1, operand2
+          super(operand1, operand2)
+          @oper, @result = oper, result
         end
 
         def execute(stack)
-          result.encode = operand1.decode.send(oper, operand2.decode)
+          result.encode = Operands::NumOperand.new(operand1.decode.send(oper, operand2.decode))
+        end
+
+        def operand1 = @operands[0]
+        def operand2 = @operands[1]
+
+        def constant?
+          puts "OP1: #{operand1.class}, OP2: #{operand2.class}"
+          operand1.kind_of?(Operands::NumOperand) && operand2.kind_of?(Operands::NumOperand)
         end
 
         def to_s = "#{result} = #{operand1} #{oper} #{operand2}"
@@ -82,15 +105,35 @@ module RPiet
       end
 
       class IntegerInstr < Instr
-        attr_reader :result, :operand
+        attr_reader :result
 
         def initialize(result, operand)
+          super(operand)
           @result, @operand = result, operand
         end
 
         def execute(stack)
           @result.encode = operand.decode
         end
+
+        def operand = @operands[0]
+
+        def to_s = "#{result} = #{super} #{operand}#{comment ? %Q{ # #{comment}} : ""}"
+      end
+
+      class CopyInstr < Instr
+        attr_reader :result
+
+        def initialize(result, operand)
+          super(operand)
+          @result = result
+        end
+
+        def execute(stack)
+          @result.encode = operand.decode
+        end
+
+        def operand = @operands[0]
 
         def to_s = "#{result} = #{super} #{operand}#{comment ? %Q{ # #{comment}} : ""}"
       end
@@ -99,6 +142,7 @@ module RPiet
         attr_reader :value
 
         def initialize(value)
+          super()
           @value = value
         end
 
@@ -108,22 +152,30 @@ module RPiet
       # input/output instructions
       class NoutInstr < SingleOperandInstr
         def execute(stack) = print operand.decode
+
+        def side_effect? = true
       end
 
       class CoutInstr < SingleOperandInstr
         def execute(stack) = print operand.decode.chr
+
+        def side_effect? = true
       end
 
       class NinInstr < SingleResultInstr
         def execute(stack)
           result.encode = $stdin.gets.to_i
         end
+
+        def side_effect? = true
       end
 
       class CinInstr < SingleResultInstr
         def execute(stack)
           result.encode = $stdin.read(1).ord
         end
+
+        def side_effect? = true
       end
 
       # instructions which manipulate the stack
@@ -132,17 +184,23 @@ module RPiet
         def execute(stack)
           result.encode = stack.pop
         end
+
+        def side_effect? = true
+
+        def stack_affecting? = true
       end
 
       class PushInstr < SingleOperandInstr
         def execute(stack) = stack.push operand.decode
+
+        def side_effect? = true
+
+        def stack_affecting? = true
       end
 
       class RollInstr < Instr
-        attr_reader :depth, :num
-
         def initialize(depth, num)
-          @depth, @num = depth, num
+          super
         end
 
         def execute(stack)
@@ -156,28 +214,45 @@ module RPiet
           end
         end
 
+        def depth = @operands[0]
+        def num = @operands[1]
+
+        def side_effect? = true
+
+        def stack_affecting? = true
+
         def to_s = "#{super}(#{depth}, #{num})"
       end
 
       # possible jumping instructions
-      class JumpInstr < LabelInstr
+      class JumpInstr < Instr
+        attr_reader :label
+
+        def initialize(label, *operands)
+          super(*operands)
+          @label = label
+        end
 
         def jump? = true
 
         def execute(stack) = label
 
-        alias :label :value
+        alias :value :label
 
-        def to_s = "#{super} -> #{value}"
+        # We are changing flow control so we cannot depend on stack changing without
+        # flow control algo
+        def stack_affecting? = true
+
+        def to_s = "jump -> #{value.value}"
       end
 
       class TwoOperandJumpInstr < JumpInstr
-        attr_reader :operand1, :operand2
-
         def initialize(operand1, operand2, label)
-          super(label)
-          @operand1, @operand2 = operand1, operand2
+          super(label, operand1, operand2)
         end
+
+        def operand1 = @operands[0]
+        def operand2 = @operands[1]
 
         def to_s = "#{operand1} #{doc_syntax} #{operand2} -> #{label}"
       end

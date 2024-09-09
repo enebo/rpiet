@@ -82,7 +82,9 @@ module RPiet
         label = LabelInstr.new(node.object_id)
         @jump_labels[node] = label
         index = @instructions.find_index(@node_mappings[node])
+        if index
         @instructions.insert index, label
+        end
       end
 
       # This will be in proper place because all new nodes are added to

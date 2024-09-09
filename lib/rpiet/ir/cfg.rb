@@ -68,6 +68,7 @@ module RPiet
 
         has_edge = @graph.edges.find { |edge| edge.source.label == current_bb.label }
         @graph.add_edge(current_bb, new_bb("exit")) unless has_edge
+        puts "a.6"
         @graph.write_to_graphic_file
       end
     end
