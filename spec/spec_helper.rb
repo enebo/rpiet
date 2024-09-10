@@ -1,5 +1,6 @@
 require_relative '../lib/rpiet/group'
 require_relative '../lib/rpiet/image/ascii_image'
+require_relative '../lib/rpiet/ir/assembler'
 
 module SpecHelper
   ##
@@ -32,7 +33,31 @@ module SpecHelper
   def create_image(string, *r)
     RPiet::Image::AsciiImage.new string, *r
   end
+
+  def assemble(code)
+    RPiet::IR::Assembler.assemble(code)
+  end
 end
+
+RSpec::Matchers.define(:be_label_operand) do |value|
+  description { 'is a label operand' }
+
+  match { |actual| actual.type == :label && actual.value == value }
+end
+
+RSpec::Matchers.define(:be_numeric_operand) do |value|
+  description { 'is a numeric operand' }
+
+  match { |actual| actual.type == :numeric && actual.value == value }
+end
+
+RSpec::Matchers.define(:be_variable_operand) do |name|
+  description { 'is a variable operand' }
+
+  match { |actual| actual.type == :variable && actual.name == name }
+end
+
+
 
 RSpec.configure do |c|
   c.include SpecHelper

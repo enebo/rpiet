@@ -1,30 +1,46 @@
 module RPiet
   module IR
     module Operands
-      class NumOperand
+      class Operand
         attr_reader :value
-        def initialize(value); @value = value; end
-        def name; :num; end
-        def to_s; value.to_s; end
+        def initialize(value)
+          @value = value
+        end
+
+        def eql?(other) = @value == other.value
+
+        def type = self.class.name.sub(/.*::/, '').sub('Operand', '').downcase.to_sym
+
+        def to_s = value.to_s
 
         alias :decode :value
       end
-      class StringOperand
-        attr_reader :value
-        def initialize(value); @value = value; end
-        def name; :string; end
-        def to_s; "#{name}(#{value})"; end
 
-        alias :decode :value
+      class LabelOperand < Operand
       end
-      class VariableOperand
-        attr_accessor :value
-        def initialize(name); @name = name; end
-        def name; @name; end
-        def to_s; "#@name#{@value ? %Q{: (#@value)} : ''}" end
 
-        alias :decode :value
-        alias :encode= :value=
+      class NumericOperand < Operand
+      end
+
+      class StringOperand < Operand
+      end
+
+      class VariableOperand < Operand
+        attr_reader :name
+        def initialize(name)
+          super(nil)
+          @name = name
+        end
+
+        def eql?(other) = @name == other.name
+
+        def hash = [self.class, @name].hash
+
+        def to_s = "#@label#{@value ? %Q{: (#@value)} : ''}"
+
+        def encode=(new_value)
+          @value = new_value
+        end
       end
     end
   end

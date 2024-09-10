@@ -52,7 +52,7 @@ module RPiet
           case instr
           when Instructions::JumpInstr
             current_bb.add_instr(instr)
-            add_edge(current_bb, instr.value.value, forward_references)
+            add_edge(current_bb, instr.value, forward_references)
           when Instructions::LabelInstr
             label = instr.value
             bb = new_bb(label)
@@ -66,7 +66,7 @@ module RPiet
           end
         end
 
-        has_edge = @graph.edges.find { |edge| edge.source.label == current_bb.label }
+        has_edge = @graph.edges.find { |edge| edge.source == current_bb.label }
         @graph.add_edge(current_bb, new_bb("exit")) unless has_edge
         puts "a.6"
         @graph.write_to_graphic_file

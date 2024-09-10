@@ -138,7 +138,7 @@ module RPiet
     def build_operand(operand)
       return operand if operand.kind_of? Operand
 
-      case operand.name
+      case operand.type
       when :var then
         temp_var_for(operand)
       when :string then
@@ -192,7 +192,7 @@ module RPiet
       stack_var = build_stack
       piet_instrs.each do |instr|
         next unless instr
-        case instr.name
+        case instr.type
         when :noop
           add NopInstr.NOP
         when :add, :sub, :mult, :div, :mod, :pow then alu_op(instr)

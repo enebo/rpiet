@@ -1,6 +1,6 @@
 module RPiet
   class Cycle
-    attr_reader :name, :value
+    attr_reader :type, :value
 
     def initialize(value, name, list)
       @value, @name, @list = value, name.to_s.downcase, list

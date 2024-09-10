@@ -6,7 +6,7 @@ module RPiet
         attr_reader :operands
 
         def operation = self.class.operation_name.to_sym
-        alias :name :operation
+        alias :type :operation
 
         def initialize(*operands)
           @operands = operands
@@ -43,7 +43,7 @@ module RPiet
 
         def operand = @operands[0]
 
-        def to_s = "#{super}(#{operand})"
+        def to_s = "#{super} #{operand}"
       end
 
       class SingleResultInstr < Instr
@@ -66,7 +66,7 @@ module RPiet
         end
 
         def execute(stack)
-          result.encode = Operands::NumOperand.new(operand1.decode.send(oper, operand2.decode))
+          result.encode = Operands::NumericOperand.new(operand1.decode.send(oper, operand2.decode))
         end
 
         def operand1 = @operands[0]
@@ -74,7 +74,7 @@ module RPiet
 
         def constant?
           puts "OP1: #{operand1.class}, OP2: #{operand2.class}"
-          operand1.kind_of?(Operands::NumOperand) && operand2.kind_of?(Operands::NumOperand)
+          operand1.kind_of?(Operands::NumericOperand) && operand2.kind_of?(Operands::NumericOperand)
         end
 
         def to_s = "#{result} = #{operand1} #{oper} #{operand2}"
@@ -243,7 +243,7 @@ module RPiet
         # flow control algo
         def stack_affecting? = true
 
-        def to_s = "jump -> #{value.value}"
+        def to_s = "jump -> #{value}"
       end
 
       class TwoOperandJumpInstr < JumpInstr

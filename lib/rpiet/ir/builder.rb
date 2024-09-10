@@ -79,7 +79,8 @@ module RPiet
       label = @jump_labels[node]
 
       unless label  # first time to insert label
-        label = LabelInstr.new(node.object_id)
+        label_operand = LabelOperand.new(node.object_id)
+        label = LabelInstr.new(label_operand)
         @jump_labels[node] = label
         index = @instructions.find_index(@node_mappings[node])
         if index
@@ -89,7 +90,7 @@ module RPiet
 
       # This will be in proper place because all new nodes are added to
       # end of instruction list.
-      add JumpInstr.new label
+      add JumpInstr.new label_operand
     end
 
     def add(instruction)
@@ -104,7 +105,7 @@ module RPiet
     end
 
     def num(value)
-      NumOperand.new(value)
+      NumericOperand.new(value)
     end
 
     def string(value)
@@ -121,7 +122,7 @@ module RPiet
 
     def label(label_name)
       label = LabelInstr.new(label_name)
-      yield label
+      yield label.value
       add label
     end
 
