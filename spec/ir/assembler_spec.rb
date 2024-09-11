@@ -89,5 +89,9 @@ describe "RPiet::IR::Assembler" do
       expect { assemble("v1 = pop\nv2 = pop\nv1 = pop\n") }.to raise_error(ArgumentError)
       expect { assemble("push v1\n") }.to raise_error(ArgumentError)
     end
+
+    it "cannot use a non-variable as a result" do
+      expect { assemble("10 = pop\n")}.to raise_error(ArgumentError)
+    end
   end
 end

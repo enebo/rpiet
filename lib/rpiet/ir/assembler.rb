@@ -56,8 +56,9 @@ module RPiet
         end
 
         def create_assignment(assignments, result)
-            raise ArgumentError.new("Same assignment found: #{result}.  Not in SSA form") if assignments[result]
-            assignments[result] = VariableOperand.new(result)
+          raise ArgumentError.new("result must be variable") unless result[0] == 'v'
+          raise ArgumentError.new("Same assignment found: #{result}.  Not in SSA form") if assignments[result]
+          assignments[result] = VariableOperand.new(result)
         end
 
         def create_operands(assignments, *operands)
