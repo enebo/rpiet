@@ -1,6 +1,7 @@
 require_relative '../lib/rpiet/group'
 require_relative '../lib/rpiet/image/ascii_image'
 require_relative '../lib/rpiet/ir/assembler'
+require_relative '../lib/rpiet/ir/ir_interpreter'
 
 module SpecHelper
   ##
@@ -37,6 +38,10 @@ module SpecHelper
   def assemble(code)
     RPiet::IR::Assembler.assemble(code)
   end
+
+  def ir_interp(instructions)
+    RPiet::IR::IRInterpreter.new(instructions)
+  end
 end
 
 RSpec::Matchers.define(:be_label_operand) do |value|
@@ -51,10 +56,19 @@ RSpec::Matchers.define(:be_numeric_operand) do |value|
   match { |actual| actual.type == :numeric && actual.value == value }
 end
 
-RSpec::Matchers.define(:be_variable_operand) do |name|
+RSpec::Matchers.define(:be_string_operand) do |value|
+  description { 'is a string operand' }
+
+  match { |actual| actual.type == :string && actual.value == value }
+end
+
+RSpec::Matchers.define(:be_variable_operand) do |name, value=nil|
   description { 'is a variable operand' }
 
-  match { |actual| actual.type == :variable && actual.name == name }
+  match do |actual|
+    actual.type == :variable && actual.name == name &&
+      (!value || actual.value == value)
+  end
 end
 
 

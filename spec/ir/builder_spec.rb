@@ -1,6 +1,6 @@
-require_relative 'spec_helper'
-require_relative '../lib/rpiet/asg/parser'
-require_relative '../lib/rpiet/ir/builder'
+require_relative '../spec_helper'
+require_relative '../../lib/rpiet/asg/parser'
+require_relative '../../lib/rpiet/ir/builder'
 
 describe "RPiet::Builder" do
   let(:cycle) do

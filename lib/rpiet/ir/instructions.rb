@@ -66,14 +66,13 @@ module RPiet
         end
 
         def execute(stack)
-          result.encode = Operands::NumericOperand.new(operand1.decode.send(oper, operand2.decode))
+          result.value = operand1.decode.send(oper, operand2.decode)
         end
 
         def operand1 = @operands[0]
         def operand2 = @operands[1]
 
         def constant?
-          puts "OP1: #{operand1.class}, OP2: #{operand2.class}"
           operand1.kind_of?(Operands::NumericOperand) && operand2.kind_of?(Operands::NumericOperand)
         end
 
@@ -104,23 +103,6 @@ module RPiet
         def initialize(result, operand1, operand2) = super(:**, result, operand1, operand2)
       end
 
-      class IntegerInstr < Instr
-        attr_reader :result
-
-        def initialize(result, operand)
-          super(operand)
-          @result, @operand = result, operand
-        end
-
-        def execute(stack)
-          @result.encode = operand.decode
-        end
-
-        def operand = @operands[0]
-
-        def to_s = "#{result} = #{super} #{operand}#{comment ? %Q{ # #{comment}} : ""}"
-      end
-
       class CopyInstr < Instr
         attr_reader :result
 
@@ -130,7 +112,7 @@ module RPiet
         end
 
         def execute(stack)
-          @result.encode = operand.decode
+          @result.value = operand
         end
 
         def operand = @operands[0]
@@ -164,7 +146,7 @@ module RPiet
 
       class NinInstr < SingleResultInstr
         def execute(stack)
-          result.encode = $stdin.gets.to_i
+          result.value = $stdin.gets.to_i
         end
 
         def side_effect? = true
@@ -172,7 +154,7 @@ module RPiet
 
       class CinInstr < SingleResultInstr
         def execute(stack)
-          result.encode = $stdin.read(1).ord
+          result.value = $stdin.read(1).ord
         end
 
         def side_effect? = true
@@ -182,7 +164,7 @@ module RPiet
 
       class PopInstr < SingleResultInstr
         def execute(stack)
-          result.encode = stack.pop
+          result.value = stack.pop
         end
 
         def side_effect? = true

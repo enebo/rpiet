@@ -4,6 +4,13 @@ include RPiet::IR::Instructions
 
 describe "RPiet::IR::Assembler" do
   context "individual instructions" do
+    it "can load copy" do
+      instr = assemble("v1 = copy 1\n").first
+      expect(instr.operation).to eq(:copy)
+      expect(instr.operands[0]).to be_numeric_operand(1)
+      expect(instr.result).to be_variable_operand("v1")
+    end
+
     it "can load push" do
       instr = assemble("push 10\n").first
       expect(instr.operation).to eq(:push)
@@ -17,15 +24,15 @@ describe "RPiet::IR::Assembler" do
     end
 
     it "can load nout" do
-      instr = assemble("nout v1\n").first
+      instr = assemble("nout 12\n").first
       expect(instr.operation).to eq(:nout)
-      expect(instr.operands[0]).to be_variable_operand("v1")
+      expect(instr.operands[0]).to be_numeric_operand(12)
     end
 
     it "can load cout" do
-      instr = assemble("cout v1\n").first
+      instr = assemble("cout 'a'\n").first
       expect(instr.operation).to eq(:cout)
-      expect(instr.operands[0]).to be_variable_operand("v1")
+      expect(instr.operands[0]).to be_string_operand("a")
     end
 
     it "can load nin" do
@@ -35,16 +42,16 @@ describe "RPiet::IR::Assembler" do
     end
 
     it "can load roll" do
-      instr = assemble("roll v1 10\n").first
+      instr = assemble("roll 1 10\n").first
       expect(instr.operation).to eq(:roll)
-      expect(instr.operands[0]).to be_variable_operand("v1")
+      expect(instr.operands[0]).to be_numeric_operand(1)
       expect(instr.operands[1]).to be_numeric_operand(10)
     end
 
     context "can load infix math" do
       %w[+ - * / % **].zip(%i[add sub mult div mod pow]).each do |oper, type|
         it "can load #{oper}" do
-          instr = assemble("v2 = 1 #{oper} v1\n").first
+          instr = assemble("v1 = copy 2\nv2 = 1 #{oper} v1\n")[1]
           expect(instr.operation).to eq(type)
           expect(instr.operands[0]).to be_numeric_operand(1)
           expect(instr.operands[1]).to be_variable_operand("v1")
@@ -56,10 +63,10 @@ describe "RPiet::IR::Assembler" do
     context "can process branches" do
       %w[> != ==].zip(%i[gt bne beq]).each do |oper, type|
         it "can load #{oper}" do
-          instr = assemble("v2 = 1 #{oper} v1 label\n").first
+          instr = assemble("v2 = 1 #{oper} 2 label\n").first
           expect(instr.operation).to eq(type)
           expect(instr.operands[0]).to be_numeric_operand(1)
-          expect(instr.operands[1]).to be_variable_operand("v1")
+          expect(instr.operands[1]).to be_numeric_operand(2)
           expect(instr.label).to be_label_operand("label")
         end
       end
@@ -80,6 +87,7 @@ describe "RPiet::IR::Assembler" do
 
     it "is in single-static-assignment form (SSA)" do
       expect { assemble("v1 = pop\nv2 = pop\nv1 = pop\n") }.to raise_error(ArgumentError)
+      expect { assemble("push v1\n") }.to raise_error(ArgumentError)
     end
   end
 end

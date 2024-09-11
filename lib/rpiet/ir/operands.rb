@@ -27,6 +27,7 @@ module RPiet
 
       class VariableOperand < Operand
         attr_reader :name
+        attr_accessor :value
         def initialize(name)
           super(nil)
           @name = name
@@ -37,10 +38,6 @@ module RPiet
         def hash = [self.class, @name].hash
 
         def to_s = "#@label#{@value ? %Q{: (#@value)} : ''}"
-
-        def encode=(new_value)
-          @value = new_value
-        end
       end
     end
   end

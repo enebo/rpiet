@@ -20,12 +20,12 @@ module RPiet
       @variable_counter = 0
       @dp, @cc = acquire_variable, acquire_variable
       @current_node = nil
-      integer(@dp, num(0), "dp")
-      integer(@cc, num(-1), "cc")
+      copy(@dp, num(0), "dp")
+      copy(@cc, num(-1), "cc")
     end
 
-    def integer(variable, value, comment=nil)
-      add(IntegerInstr.new(variable, value).tap do |instr|
+    def copy(variable, value, comment=nil)
+      add(CopyInstr.new(variable, value).tap do |instr|
         instr.comment = comment if comment
       end)
     end
@@ -200,9 +200,9 @@ module RPiet
         variable1, variable2 = pop, pop
         add RollInstr.new variable2, variable1
       when :cc then
-        integer(@cc = acquire_variable, num(node.value), "cc")
+        copy(@cc = acquire_variable, num(node.value), "cc")
       when :dp then
-        integer(@dp = acquire_variable, num(node.value), "dp")
+        copy(@dp = acquire_variable, num(node.value), "dp")
       end
     end
 

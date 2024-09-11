@@ -1,11 +1,11 @@
-require_relative 'spec_helper'
-require_relative '../lib/rpiet/asg/parser'
-require_relative '../lib/rpiet/ir/builder'
-require_relative '../lib/rpiet/ir/cfg'
-require_relative '../lib/rpiet/ir/constant_propagation'
-require_relative '../lib/rpiet/ir/dead_code_elimination'
-require_relative '../lib/rpiet/ir/peephole'
-require_relative '../lib/rpiet/image/url_image'
+require_relative '../spec_helper'
+require_relative '../../lib/rpiet/asg/parser'
+require_relative '../../lib/rpiet/ir/builder'
+require_relative '../../lib/rpiet/ir/cfg'
+require_relative '../../lib/rpiet/ir/constant_propagation'
+require_relative '../../lib/rpiet/ir/dead_code_elimination'
+require_relative '../../lib/rpiet/ir/peephole'
+require_relative '../../lib/rpiet/image/url_image'
 
 
 describe "RPiet::Builder" do

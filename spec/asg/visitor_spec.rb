@@ -1,6 +1,6 @@
-require_relative '../lib/rpiet/asg/parser'
-require_relative '../lib/rpiet/asg/visitor'
-require_relative '../lib/rpiet/image/ascii_image'
+require_relative '../../lib/rpiet/asg/parser'
+require_relative '../../lib/rpiet/asg/visitor'
+require_relative '../../lib/rpiet/image/ascii_image'
 
 describe "RPiet::Visitor" do
   let(:cycle) do

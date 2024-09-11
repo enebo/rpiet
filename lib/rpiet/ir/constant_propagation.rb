@@ -24,7 +24,7 @@ module RPiet
           end
 
           case instr
-          when Instructions::CopyInstr, Instructions::IntegerInstr
+          when Instructions::CopyInstr
             constants[instr.result] = instr.operand
             constant_instrs[instr.result] = instr
           end
@@ -37,7 +37,7 @@ module RPiet
 
       module_function def fold(instr)
         if instr.kind_of?(Instructions::MathInstr) && instr.constant?
-          Instructions::IntegerInstr.new(instr.result, instr.execute(nil))
+          Instructions::CopyInstr.new(instr.result, instr.execute(nil))
         else
           instr
         end

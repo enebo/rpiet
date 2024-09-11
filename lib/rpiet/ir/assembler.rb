@@ -20,23 +20,15 @@ module RPiet
               operation, *operands = rhs.split(/\s+/)
             end
 
-            instr = create(result, operation, *operands)
-
-            if instr.respond_to?(:result)
-              result = instr.result
-              raise ArgumentError.new("Same assignment found #{result}.  Not in SSA form") if assignments[result]
-              assignments[result] = true
-            end
-            
-            instructions << instr
+            instructions << create(assignments, result, operation, *operands)
           end
 
           instructions
         end
 
-        def create(result, operation, *operands)
-          result = create_operands(result).first if result
-          operands = create_operands(*operands)
+        def create(assignments, result, operation, *operands)
+          result = create_assignment(assignments, result) if result
+          operands = create_operands(assignments, *operands)
 
           # Assumes assembly is valid.
           case operation
@@ -57,17 +49,26 @@ module RPiet
           when 'cin' then CinInstr.new(result)
           when 'nin' then NinInstr.new(result)
           when 'roll' then RollInstr.new *operands
+          when 'copy' then CopyInstr.new(result, *operands)
           else
             raise ArgumentError.new("unknown operation: #{operation}")
           end
         end
 
-        def create_operands(*operands)
+        def create_assignment(assignments, result)
+            raise ArgumentError.new("Same assignment found: #{result}.  Not in SSA form") if assignments[result]
+            assignments[result] = VariableOperand.new(result)
+        end
+
+        def create_operands(assignments, *operands)
           operands.map do |operand|
             case operand[0]
-            when 'v' then VariableOperand.new(operand)
+            when 'v' then
+              variable = assignments[operand]
+              raise ArgumentError.new("Variable without assignment found: #{operand}.  Not in SSA form") unless variable
+              variable
             when /\d/ then NumericOperand.new(Integer(operand))
-            when '\'' then StringOperand.new(operand[1..-1])
+            when '\'' then StringOperand.new(operand[1..-2])
             when /\S/ then LabelOperand.new(operand)
             else raise ArgumentError.new("unknown operand: #{operand}")
             end
