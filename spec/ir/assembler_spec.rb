@@ -57,6 +57,11 @@ describe "RPiet::IR::Assembler" do
           expect(instr.operands[1]).to be_variable_operand("v1")
           expect(instr.result).to be_variable_operand("v2")
         end
+
+        it "cannot load non-numeric/variable operands" do
+          expect { assemble("v1 = 10 #{oper} label\n")}.to raise_error(ArgumentError)
+          expect { assemble("v1 = 10 #{oper} 'a'\n")}.to raise_error(ArgumentError)
+        end
       end
     end
 

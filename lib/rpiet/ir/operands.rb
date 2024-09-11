@@ -9,6 +9,8 @@ module RPiet
 
         def eql?(other) = @value == other.value
 
+        def mathy? = false
+
         def type = self.class.name.sub(/.*::/, '').sub('Operand', '').downcase.to_sym
 
         def to_s = value.to_s
@@ -20,6 +22,7 @@ module RPiet
       end
 
       class NumericOperand < Operand
+        def mathy? = true
       end
 
       class StringOperand < Operand
@@ -36,6 +39,8 @@ module RPiet
         def eql?(other) = @name == other.name
 
         def hash = [self.class, @name].hash
+
+        def mathy? = true
 
         def to_s = "#@label#{@value ? %Q{: (#@value)} : ''}"
       end

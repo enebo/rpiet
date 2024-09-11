@@ -22,6 +22,14 @@ describe "RPiet::IR::IRInterpreter" do
     interp.next_step
     expect(interp.stack).to eq([12])
   end
+
+  it "can exec add" do
+    interp = ir_interp(assemble("v1 = 10 - 2\npush v1\n"))
+    interp.next_step
+    interp.next_step
+    expect(interp.stack).to eq([8])
+  end
+
   #  %w[+ - * / % **].each do |oper|
 
 

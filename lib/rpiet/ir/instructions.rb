@@ -61,6 +61,8 @@ module RPiet
         attr_reader :oper, :result
 
         def initialize(oper, result, operand1, operand2)
+          raise ArgumentError.new("must be numeric/variable operand.  Got: #{operand1}") unless operand1.mathy?
+          raise ArgumentError.new("must be numeric/variable operand.  Got: #{operand2}") unless operand2.mathy?
           super(operand1, operand2)
           @oper, @result = oper, result
         end
