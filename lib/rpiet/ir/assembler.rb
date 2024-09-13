@@ -12,7 +12,7 @@ module RPiet
           assignments = {}
 
           code.split($/).each do |line|
-            result, rhs = line.split(/\s*=\s*/, 2)
+            result, rhs = line.split(/\s+=\s+/, 2)
             rhs, result = result, nil unless rhs
             if rhs =~ /\s*(\S+)\s*(==|!=|\*\*|[>\*\/\-%+])\s*(\S+)(?:\s*(\S+))?\s*/
               operation, *operands = $2, *[$1, $3, $4].compact
@@ -50,6 +50,7 @@ module RPiet
           when 'nin' then NinInstr.new(result)
           when 'roll' then RollInstr.new *operands
           when 'copy' then CopyInstr.new(result, *operands)
+          when 'label' then LabelInstr.new(*operands)
           else
             raise ArgumentError.new("unknown operation: #{operation}")
           end

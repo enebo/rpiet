@@ -29,7 +29,8 @@ module RPiet
       def calculate_jump_table(instructions)
         jump_table = {}
         instructions.each_with_index do |instr, i|
-          jump_table[instr] = i if instr.kind_of? RPiet::IR::Instructions::LabelInstr
+          # We go one past label since it is merely a marker
+          jump_table[instr.operand.decode] = i + 1 if instr.operation == :label
         end
         jump_table
       end
@@ -40,7 +41,7 @@ module RPiet
         @event_handler.instruction(self, instr)
         value = instr.execute(@stack)
         if instr.jump? && value
-          @ipc = @jump_table[value]
+          @ipc = @jump_table[value.decode]
         else
           @ipc += 1
         end

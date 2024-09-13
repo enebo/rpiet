@@ -17,10 +17,10 @@ module RPiet
       end
 
       def next_step
-        while @node.hidden?
+        while @node && @node.hidden?
           @node = @node.exec @pvm
         end
-        @node = @node.exec @pvm
+        @node = @node.exec @pvm if @node
       end
 
       def running?

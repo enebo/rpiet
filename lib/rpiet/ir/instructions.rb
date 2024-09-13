@@ -68,7 +68,7 @@ module RPiet
         end
 
         def execute(stack)
-          result.value = operand1.decode.send(oper, operand2.decode)
+          result.value = Operands::NumericOperand.new(operand1.decode.send(oper, operand2.decode))
         end
 
         def operand1 = @operands[0]
@@ -127,10 +127,13 @@ module RPiet
 
         def initialize(value)
           super()
+          raise ArgumentError.new "label instr must have a label operand.  Got: #{value}" if value.type != :label
           @value = value
         end
 
-        def to_s = "#{super}(#{value})"
+        def operand = @value
+
+        def to_s = "#{operation}(#{value})"
       end
 
       # input/output instructions

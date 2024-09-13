@@ -7,14 +7,14 @@ describe "RPiet::IR::Assembler" do
     it "can load copy" do
       instr = assemble("v1 = copy 1\n").first
       expect(instr.operation).to eq(:copy)
-      expect(instr.operands[0]).to be_numeric_operand(1)
+      expect(instr.operand).to be_numeric_operand(1)
       expect(instr.result).to be_variable_operand("v1")
     end
 
     it "can load push" do
       instr = assemble("push 10\n").first
       expect(instr.operation).to eq(:push)
-      expect(instr.operands[0]).to be_numeric_operand(10)
+      expect(instr.operand).to be_numeric_operand(10)
     end
 
     it "can load pop" do
@@ -26,13 +26,13 @@ describe "RPiet::IR::Assembler" do
     it "can load nout" do
       instr = assemble("nout 12\n").first
       expect(instr.operation).to eq(:nout)
-      expect(instr.operands[0]).to be_numeric_operand(12)
+      expect(instr.operand).to be_numeric_operand(12)
     end
 
     it "can load cout" do
       instr = assemble("cout 'a'\n").first
       expect(instr.operation).to eq(:cout)
-      expect(instr.operands[0]).to be_string_operand("a")
+      expect(instr.operand).to be_string_operand("a")
     end
 
     it "can load nin" do
@@ -44,8 +44,20 @@ describe "RPiet::IR::Assembler" do
     it "can load roll" do
       instr = assemble("roll 1 10\n").first
       expect(instr.operation).to eq(:roll)
-      expect(instr.operands[0]).to be_numeric_operand(1)
-      expect(instr.operands[1]).to be_numeric_operand(10)
+      expect(instr.depth).to be_numeric_operand(1)
+      expect(instr.num).to be_numeric_operand(10)
+    end
+
+    it "can load label" do
+      instr = assemble("label foo\n").first
+      expect(instr.operation).to eq(:label)
+      expect(instr.operand).to be_label_operand("foo")
+    end
+
+    it "cannot load label with non-label operand" do
+      expect { assemble("label 1\n") }.to raise_error(ArgumentError)
+      expect { assemble("label 'a'\n") }.to raise_error(ArgumentError)
+      expect { assemble("v1 = copy 1\nlabel v1\n") }.to raise_error(ArgumentError)
     end
 
     context "can load infix math" do
@@ -53,8 +65,8 @@ describe "RPiet::IR::Assembler" do
         it "can load #{oper}" do
           instr = assemble("v1 = copy 2\nv2 = 1 #{oper} v1\n")[1]
           expect(instr.operation).to eq(type)
-          expect(instr.operands[0]).to be_numeric_operand(1)
-          expect(instr.operands[1]).to be_variable_operand("v1")
+          expect(instr.operand1).to be_numeric_operand(1)
+          expect(instr.operand2).to be_variable_operand("v1")
           expect(instr.result).to be_variable_operand("v2")
         end
 
@@ -70,8 +82,8 @@ describe "RPiet::IR::Assembler" do
         it "can load #{oper}" do
           instr = assemble("v2 = 1 #{oper} 2 label\n").first
           expect(instr.operation).to eq(type)
-          expect(instr.operands[0]).to be_numeric_operand(1)
-          expect(instr.operands[1]).to be_numeric_operand(2)
+          expect(instr.operand1).to be_numeric_operand(1)
+          expect(instr.operand2).to be_numeric_operand(2)
           expect(instr.label).to be_label_operand("label")
         end
       end

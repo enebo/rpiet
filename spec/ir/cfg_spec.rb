@@ -37,15 +37,10 @@ nb db ++ lr ++
 
   it "can" do
     filename = 'file:images/nfib.png'
-    puts "a.1"
     image = RPiet::Image::URLImage.new(filename, 1)
-    puts "a.2"
     graph = RPiet::ASG::Parser.new(image).run
-    puts "a.3"
     builder = RPiet::Builder.new
-    puts "a.4"
     builder.run graph
-    puts "a.5"
     RPiet::IR::Peephole.run(builder.instructions)
     RPiet::IR::DeadCodeElimination.run(builder.instructions)
     RPiet::IR::ConstantPropagation.run(builder.instructions)

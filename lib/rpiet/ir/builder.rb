@@ -47,7 +47,7 @@ module RPiet
       @dp = mod(variable, num(4))
       label('end_pntr') do |end_label|
         4.times do |i|
-          next_label = i == 3 ? end_label : LabelInstr.new("pntr[#{i}]")
+          next_label = i == 3 ? end_label : LabelInstr.new(LabelOperand.new("pntr[#{i}]"))
           add BNEInstr.new @dp, num(i), next_label
           visit(worklist << node.paths[i])
           add next_label unless i == 3
@@ -121,7 +121,7 @@ module RPiet
     end
 
     def label(label_name)
-      label = LabelInstr.new(label_name)
+      label = LabelInstr.new(LabelOperand.new(label_name))
       yield label.value
       add label
     end
@@ -172,12 +172,12 @@ module RPiet
         end
       when :not then # REWRITE AS BEQ/BNE
         label('end') do |end_label|
-          label('false') do |false_label|
-            add BNEInstr.new pop, num(0), false_label
-            push(num(1))
+          label('true_test_not') do |true_label|
+            add BEQInstr.new pop, num(1), true_label
+            push(num(0))
             jump(end_label)
           end
-          push(num(0))
+          push(num(1))
         end
       when :dup then
         variable = pop

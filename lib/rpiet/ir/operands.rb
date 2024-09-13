@@ -42,7 +42,9 @@ module RPiet
 
         def mathy? = true
 
-        def to_s = "#@label#{@value ? %Q{: (#@value)} : ''}"
+        def decode = value.decode
+
+        def to_s = "#@name#{@value ? %Q{:(#@value)} : ''}"
       end
     end
   end

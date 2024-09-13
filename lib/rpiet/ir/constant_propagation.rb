@@ -10,7 +10,6 @@ module RPiet
         dead_instrs = []
 
         instructions.each_with_index do |instr, i|
-          puts "I: #{instr}"
           instr.operands.each_with_index do |operand, j|
             if constants[operand]
               dead_instrs << constant_instrs[operand]
