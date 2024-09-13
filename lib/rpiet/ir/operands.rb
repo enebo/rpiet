@@ -1,48 +1,21 @@
 module RPiet
   module IR
+    ##
+    # Using pure Ruby types for all operands but variable:
+    #   1. label => Symbol
+    #   2. char => String
+    #   3. numeric => Integer
     module Operands
-      class Operand
-        attr_reader :value
-        def initialize(value)
-          @value = value
-        end
-
-        def eql?(other) = @value == other.value
-
-        def mathy? = false
-
-        def type = self.class.name.sub(/.*::/, '').sub('Operand', '').downcase.to_sym
-
-        def to_s = value.to_s
-
-        alias :decode :value
-      end
-
-      class LabelOperand < Operand
-      end
-
-      class NumericOperand < Operand
-        def mathy? = true
-      end
-
-      class StringOperand < Operand
-      end
-
-      class VariableOperand < Operand
+      class VariableOperand
         attr_reader :name
         attr_accessor :value
         def initialize(name)
-          super(nil)
-          @name = name
+          @value, @name = nil, name
         end
 
         def eql?(other) = @name == other.name
 
         def hash = [self.class, @name].hash
-
-        def mathy? = true
-
-        def decode = value.decode
 
         def to_s = "#@name#{@value ? %Q{:(#@value)} : ''}"
       end

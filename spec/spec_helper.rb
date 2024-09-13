@@ -47,26 +47,26 @@ end
 RSpec::Matchers.define(:be_label_operand) do |value|
   description { 'is a label operand' }
 
-  match { |actual| actual.type == :label && actual.value == value }
+  match { |actual| actual.kind_of?(Symbol) && actual == value }
 end
 
 RSpec::Matchers.define(:be_numeric_operand) do |value|
   description { 'is a numeric operand' }
 
-  match { |actual| actual.type == :numeric && actual.value == value }
+  match { |actual| actual.kind_of?(Integer) && actual == value }
 end
 
 RSpec::Matchers.define(:be_string_operand) do |value|
   description { 'is a string operand' }
 
-  match { |actual| actual.type == :string && actual.value == value }
+  match { |actual| actual.kind_of?(String) && actual == value }
 end
 
 RSpec::Matchers.define(:be_variable_operand) do |name, value=nil|
   description { 'is a variable operand' }
 
   match do |actual|
-    actual.type == :variable && actual.name == name &&
+    actual.kind_of?(RPiet::IR::Operands::VariableOperand) && actual.name == name &&
       (!value || actual.value == value)
   end
 end

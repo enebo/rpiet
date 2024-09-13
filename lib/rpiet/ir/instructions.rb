@@ -12,6 +12,11 @@ module RPiet
           @operands = operands
         end
 
+        def decode(operand)
+          operand = operand.value if operand.kind_of?(Operands::VariableOperand)
+          operand
+        end
+
         def execute(stack) = raise ArgumentError.new "Cannot execute a base class"
 
         def jump? = false
@@ -61,22 +66,26 @@ module RPiet
         attr_reader :oper, :result
 
         def initialize(oper, result, operand1, operand2)
-          raise ArgumentError.new("must be numeric/variable operand.  Got: #{operand1}") unless operand1.mathy?
-          raise ArgumentError.new("must be numeric/variable operand.  Got: #{operand2}") unless operand2.mathy?
+          raise ArgumentError.new("must be numeric/variable operand.  Got: #{operand1}") unless mathy?(operand1)
+          raise ArgumentError.new("must be numeric/variable operand.  Got: #{operand2}") unless mathy?(operand2)
           super(operand1, operand2)
           @oper, @result = oper, result
         end
 
         def execute(stack)
-          result.value = Operands::NumericOperand.new(operand1.decode.send(oper, operand2.decode))
+          result.value = decode(operand1).send(oper, decode(operand2))
+        end
+
+        def constant?
+          operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
+        end
+
+        def mathy?(operand)
+          operand.kind_of?(Integer) || operand.kind_of?(Operands::VariableOperand)
         end
 
         def operand1 = @operands[0]
         def operand2 = @operands[1]
-
-        def constant?
-          operand1.kind_of?(Operands::NumericOperand) && operand2.kind_of?(Operands::NumericOperand)
-        end
 
         def to_s = "#{result} = #{operand1} #{oper} #{operand2}"
       end
@@ -127,7 +136,7 @@ module RPiet
 
         def initialize(value)
           super()
-          raise ArgumentError.new "label instr must have a label operand.  Got: #{value}" if value.type != :label
+          raise ArgumentError.new "label instr must have a label operand.  Got: #{value}" unless value.kind_of?(Symbol)
           @value = value
         end
 
@@ -138,13 +147,13 @@ module RPiet
 
       # input/output instructions
       class NoutInstr < SingleOperandInstr
-        def execute(stack) = print operand.decode
+        def execute(stack) = print decode(operand)
 
         def side_effect? = true
       end
 
       class CoutInstr < SingleOperandInstr
-        def execute(stack) = print operand.decode.chr
+        def execute(stack) = print decode(operand).chr
 
         def side_effect? = true
       end
@@ -178,7 +187,7 @@ module RPiet
       end
 
       class PushInstr < SingleOperandInstr
-        def execute(stack) = stack.push operand.decode
+        def execute(stack) = stack.push decode(operand)
 
         def side_effect? = true
 
@@ -191,7 +200,7 @@ module RPiet
         end
 
         def execute(stack)
-          d, n = depth.decode, num.decode
+          d, n = decode(depth), decode(num)
           n %= d
           return if d <= 0 || num == 0
           if n > 0
@@ -246,17 +255,17 @@ module RPiet
 
       class BEQInstr < TwoOperandJumpInstr
         def doc_syntax = "=="
-        def execute(stack) = operand1.decode == operand2.decode ? super : nil
+        def execute(stack) = decode(operand1) == decode(operand2) ? super : nil
       end
 
       class BNEInstr < TwoOperandJumpInstr
         def doc_syntax = "!="
-        def execute(stack) = operand1.decode != operand2.decode ? super : nil
+        def execute(stack) = decode(operand1) != decode(operand2) ? super : nil
       end
 
       class GTInstr  < TwoOperandJumpInstr
         def doc_syntax = ">"
-        def execute(stack) = operand1.decode > operand2.decode ? super : nil
+        def execute(stack) = decode(operand1) > decode(operand2) ? super : nil
       end
 
       class NodeInstr < Instr

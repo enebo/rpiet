@@ -69,9 +69,9 @@ module RPiet
               variable = assignments[operand]
               raise ArgumentError.new("Variable without assignment found: #{operand}.  Not in SSA form") unless variable
               variable
-            when /\d/ then NumericOperand.new(Integer(operand))
-            when '\'' then StringOperand.new(operand[1..-2])
-            when /\S/ then LabelOperand.new(operand)
+            when /\d/ then Integer(operand)
+            when '\'' then operand[1..-2]
+            when /\S/ then operand.to_sym
             else raise ArgumentError.new("unknown operand: #{operand}")
             end
           end

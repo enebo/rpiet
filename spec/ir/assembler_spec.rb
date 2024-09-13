@@ -51,7 +51,7 @@ describe "RPiet::IR::Assembler" do
     it "can load label" do
       instr = assemble("label foo\n").first
       expect(instr.operation).to eq(:label)
-      expect(instr.operand).to be_label_operand("foo")
+      expect(instr.operand).to be_label_operand(:foo)
     end
 
     it "cannot load label with non-label operand" do
@@ -84,7 +84,7 @@ describe "RPiet::IR::Assembler" do
           expect(instr.operation).to eq(type)
           expect(instr.operand1).to be_numeric_operand(1)
           expect(instr.operand2).to be_numeric_operand(2)
-          expect(instr.label).to be_label_operand("label")
+          expect(instr.label).to be_label_operand(:label)
         end
       end
     end
@@ -92,7 +92,7 @@ describe "RPiet::IR::Assembler" do
     it "can load jump" do
       instr = assemble("jump label\n").first
       expect(instr.operation).to eq(:jump)
-      expect(instr.label).to be_label_operand("label")
+      expect(instr.label).to be_label_operand(:label)
     end
 
     it "can load multiple instructions" do

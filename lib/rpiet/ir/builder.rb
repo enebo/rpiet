@@ -45,9 +45,9 @@ module RPiet
       variable = pop
       variable = plus(@dp, variable)
       @dp = mod(variable, num(4))
-      label('end_pntr') do |end_label|
+      label(:end_pntr) do |end_label|
         4.times do |i|
-          next_label = i == 3 ? end_label : LabelInstr.new(LabelOperand.new("pntr[#{i}]"))
+          next_label = i == 3 ? end_label : LabelInstr.new(:"pntr[#{i}]")
           add BNEInstr.new @dp, num(i), next_label
           visit(worklist << node.paths[i])
           add next_label unless i == 3
@@ -65,7 +65,7 @@ module RPiet
       result = mod(result, num(2))
       result = pow(num(-1), result)
       result = mult(@cc, result)
-      label('swch[-1]') do |next_label|
+      label(:'swch[-1]') do |next_label|
         add BNEInstr.new(@cc = result, num(-1), next_label)
         visit(worklist << node.paths[0])
       end
@@ -79,7 +79,7 @@ module RPiet
       label = @jump_labels[node]
 
       unless label  # first time to insert label
-        label_operand = LabelOperand.new(node.object_id)
+        label_operand = :"{node.object_id}"
         label = LabelInstr.new(label_operand)
         @jump_labels[node] = label
         index = @instructions.find_index(@node_mappings[node])
@@ -105,11 +105,11 @@ module RPiet
     end
 
     def num(value)
-      NumericOperand.new(value)
+      Integer(value)
     end
 
     def string(value)
-      StringOperand.new(value)
+      value
     end
 
     def acquire_variable
@@ -121,7 +121,7 @@ module RPiet
     end
 
     def label(label_name)
-      label = LabelInstr.new(LabelOperand.new(label_name))
+      label = LabelInstr.new(label_name)
       yield label.value
       add label
     end
@@ -162,8 +162,8 @@ module RPiet
       when :nout then unary_op NoutInstr
       when :cout then unary_op CoutInstr
       when :gtr then
-        label('end') do |end_label|
-          label('true') do |true_label|
+        label(:end) do |end_label|
+          label(:true) do |true_label|
             add GTInstr.new pop, pop, true_label
             push(num(0))
             jump(end_label)
@@ -171,8 +171,8 @@ module RPiet
           push(num(1))
         end
       when :not then # REWRITE AS BEQ/BNE
-        label('end') do |end_label|
-          label('true_test_not') do |true_label|
+        label(:end) do |end_label|
+          label(:true_test_not) do |true_label|
             add BEQInstr.new pop, num(1), true_label
             push(num(0))
             jump(end_label)
