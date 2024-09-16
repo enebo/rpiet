@@ -140,6 +140,7 @@ module RPiet
             return
           end
         end
+        @current_state.node.add_path(ExitNode.new(step, x, y))
         @event_handler.execution_completed(self)
       end
     end

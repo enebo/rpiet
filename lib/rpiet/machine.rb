@@ -65,7 +65,7 @@ module RPiet
     end
 
     def inspect
-      "dp: #{@dp.ascii}, cc: #{@cc.ascii(@dp)}, bv: #{@block_value}, st: #{@stack}"
+      "dp: #{@dp.ascii}[#{@dp.ordinal}], cc: #{@cc.ascii(@dp)}, bv: #{@block_value}, st: #{@stack}"
     end
     alias :to_s :inspect
 

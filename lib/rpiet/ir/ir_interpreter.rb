@@ -5,6 +5,7 @@ module RPiet
   module IR
     class IRInterpreter
       attr_reader :stack
+      attr_accessor :dp, :cc
 
       def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
         @event_handler = event_handler
@@ -23,7 +24,7 @@ module RPiet
       end
 
       def reset
-        @ipc, @stack = 0, []
+        @ipc, @stack, @dp, @cc = 0, [], nil, nil
       end
 
       def calculate_jump_table(instructions)
@@ -37,10 +38,13 @@ module RPiet
 
       def next_step
         instr = @instructions[@ipc]
-        return false unless instr
+
+        #puts "NODE: #{instr.graph_node} INSTR: #{instr} #{@stack}"
+
         @event_handler.instruction(self, instr)
-        value = instr.execute(@stack)
+        value = instr.execute(self)
         if instr.jump? && value
+          return false if value == :exit
           @ipc = @jump_table[value]
         else
           @ipc += 1

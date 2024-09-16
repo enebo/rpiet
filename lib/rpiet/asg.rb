@@ -135,7 +135,12 @@ module RPiet
       end
     end
 
-    ##
+    class ExitNode < Node
+      def execute(machine)
+      end
+    end
+
+  ##
     # Greater than operation on top two stack values
     class GtrNode < Node
       def execute(machine)

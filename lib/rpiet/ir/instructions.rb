@@ -2,6 +2,8 @@ module RPiet
   module IR
     module Instructions
       class Instr
+        # for debugging so we can print out the node to compare against the graph interpreter
+        attr_accessor :graph_node
         attr_accessor :comment
         attr_reader :operands
 
@@ -17,7 +19,7 @@ module RPiet
           operand
         end
 
-        def execute(stack) = raise ArgumentError.new "Cannot execute a base class"
+        def execute(machine) = raise ArgumentError.new "Cannot execute a base class"
 
         def jump? = false
 
@@ -26,6 +28,7 @@ module RPiet
         def stack_affecting? = false
 
         def to_s = operation
+        def to_s_comment = comment ? " # #{comment}" : ""
 
         def self.operation_name = name.sub(/.*::/, '').sub('Instr', '').downcase
       end
@@ -35,10 +38,18 @@ module RPiet
           super()
         end
 
-        def execute(stack)
+        def execute(machine)
         end
 
         def to_s = "noop"
+      end
+
+      class ExitInstr < Instr
+        def jump? = true
+
+        def execute(machine)
+          :exit
+        end
       end
 
       class SingleOperandInstr < Instr
@@ -48,7 +59,7 @@ module RPiet
 
         def operand = @operands[0]
 
-        def to_s = "#{super} #{operand}"
+        def to_s = "#{operation} #{operand}"
       end
 
       class SingleResultInstr < Instr
@@ -59,7 +70,7 @@ module RPiet
           @result = result
         end
 
-        def to_s = "#{result} = #{super}"
+        def to_s = "#{result} = #{operation}"
       end
 
       class MathInstr < Instr
@@ -72,7 +83,7 @@ module RPiet
           @oper, @result = oper, result
         end
 
-        def execute(stack)
+        def execute(machine)
           result.value = decode(operand1).send(oper, decode(operand2))
         end
 
@@ -122,13 +133,13 @@ module RPiet
           @result = result
         end
 
-        def execute(stack)
+        def execute(machine)
           @result.value = operand
         end
 
         def operand = @operands[0]
 
-        def to_s = "#{result} = #{super} #{operand}#{comment ? %Q{ # #{comment}} : ""}"
+        def to_s = "#{result} = #{operation} #{operand}#{comment ? %Q{ # #{comment}} : ""}"
       end
 
       class LabelInstr < NoopInstr
@@ -147,19 +158,19 @@ module RPiet
 
       # input/output instructions
       class NoutInstr < SingleOperandInstr
-        def execute(stack) = print decode(operand)
+        def execute(machine) = print decode(operand)
 
         def side_effect? = true
       end
 
       class CoutInstr < SingleOperandInstr
-        def execute(stack) = print decode(operand).chr
+        def execute(machine) = print decode(operand).chr
 
         def side_effect? = true
       end
 
       class NinInstr < SingleResultInstr
-        def execute(stack)
+        def execute(machine)
           result.value = $stdin.gets.to_i
         end
 
@@ -167,7 +178,7 @@ module RPiet
       end
 
       class CinInstr < SingleResultInstr
-        def execute(stack)
+        def execute(machine)
           result.value = $stdin.read(1).ord
         end
 
@@ -177,8 +188,8 @@ module RPiet
       # instructions which manipulate the stack
 
       class PopInstr < SingleResultInstr
-        def execute(stack)
-          result.value = stack.pop
+        def execute(machine)
+          result.value = machine.stack.pop
         end
 
         def side_effect? = true
@@ -187,7 +198,7 @@ module RPiet
       end
 
       class PushInstr < SingleOperandInstr
-        def execute(stack) = stack.push decode(operand)
+        def execute(machine) = machine.stack.push decode(operand)
 
         def side_effect? = true
 
@@ -199,10 +210,11 @@ module RPiet
           super
         end
 
-        def execute(stack)
+        def execute(machine)
           d, n = decode(depth), decode(num)
           n %= d
           return if d <= 0 || num == 0
+          stack = machine.stack
           if n > 0
             stack[-d..-1] = stack[-n..-1] + stack[-d...-n]
           elsif n < 0
@@ -217,7 +229,7 @@ module RPiet
 
         def stack_affecting? = true
 
-        def to_s = "#{super}(#{depth}, #{num})"
+        def to_s = "#{operation}(#{depth}, #{num})"
       end
 
       # possible jumping instructions
@@ -231,7 +243,7 @@ module RPiet
 
         def jump? = true
 
-        def execute(stack) = label
+        def execute(machine) = label
 
         alias :value :label
 
@@ -239,7 +251,7 @@ module RPiet
         # flow control algo
         def stack_affecting? = true
 
-        def to_s = "jump -> #{value}"
+        def to_s = "jump -> #{value}#{to_s_comment}"
       end
 
       class TwoOperandJumpInstr < JumpInstr
@@ -255,31 +267,35 @@ module RPiet
 
       class BEQInstr < TwoOperandJumpInstr
         def doc_syntax = "=="
-        def execute(stack) = decode(operand1) == decode(operand2) ? super : nil
+        def execute(machine) = decode(operand1) == decode(operand2) ? super : nil
       end
 
       class BNEInstr < TwoOperandJumpInstr
         def doc_syntax = "!="
-        def execute(stack) = decode(operand1) != decode(operand2) ? super : nil
+        def execute(machine) = decode(operand1) != decode(operand2) ? super : nil
       end
 
       class GTInstr  < TwoOperandJumpInstr
         def doc_syntax = ">"
-        def execute(stack) = decode(operand1) > decode(operand2) ? super : nil
+        def execute(machine) = decode(operand1) > decode(operand2) ? super : nil
       end
 
-      class NodeInstr < Instr
-        attr_reader :operation, :step, :x, :y
+      class DPSetInstr < SingleOperandInstr
+        # FIXME: I think we know operand is always a number and never a variable...remove decode()
+        def execute(machine) = machine.dp = decode(operand)
+      end
 
-        def initialize(operation, step, x, y)
-          @operation, @step, @x, @y = operation, step, x, y
-        end
+      class DPGetInstr < SingleResultInstr
+        def execute(machine) = result.value = machine.dp
+      end
 
-        def execute(stack)
-          #puts "DEBUG: #{self}"
-        end
+      class CCSetInstr < SingleOperandInstr
+        # FIXME: I think we know operand is always a number and never a variable...remove decode()
+        def execute(machine) = machine.cc = decode(operand)
+      end
 
-        def to_s = "node = [#{operation}, #{step}, #{x}, #{y}]"
+      class CCGetInstr < SingleResultInstr
+        def execute(machine) = result.value = machine.cc
       end
     end
   end

@@ -18,10 +18,9 @@ module RPiet
       @node_mappings = {} # instruction -> node
       @jump_labels = {} # node -> label
       @variable_counter = 0
-      @dp, @cc = acquire_variable, acquire_variable
       @current_node = nil
-      copy(@dp, num(0), "dp")
-      copy(@cc, num(-1), "cc")
+      add DPSetInstr.new(num(0))
+      add CCSetInstr.new(num(-1))
     end
 
     def copy(variable, value, comment=nil)
@@ -31,26 +30,33 @@ module RPiet
     end
 
     def visit_first(node)
-      add NodeInstr.new(node.operation, node.step, node.x, node.y) if DEBUG
+      @graph_node = node
       @current_node = node
       instructions_for node
       super node
     end
 
     def visit_first_pntr(node, worklist)
-      NodeInstr.new(node.operation, node.step, node.x, node.y) if DEBUG
-
       # In stack make pntr = (pntr + 1) % 4
       @current_node = node
+      @graph_node = node
       variable = pop
-      variable = plus(@dp, variable)
-      @dp = mod(variable, num(4))
-      label(:end_pntr) do |end_label|
+      add DPGetInstr.new(dp = acquire_variable)
+      variable = plus(dp, variable)
+      dp = mod(variable, num(4))
+      add DPSetInstr.new(dp)
+      label(:"end_pntr#{@graph_node.step}") do |end_label|
         4.times do |i|
-          next_label = i == 3 ? end_label : LabelInstr.new(:"pntr[#{i}]")
-          add BNEInstr.new @dp, num(i), next_label
+          if i == 3
+            next_label = end_label
+          else
+            segment_label = LabelInstr.new(:"pntr[#{i}]#{@graph_node.step}")
+            next_label = segment_label.value
+          end
+          add BNEInstr.new dp, i, next_label
           visit(worklist << node.paths[i])
-          add next_label unless i == 3
+          @graph_node = node
+          add segment_label unless i == 3
         end
       end
 
@@ -58,15 +64,16 @@ module RPiet
     end
 
     def visit_first_swch(node, worklist)
-      add NodeInstr.new(node.operation, node.step, node.x, node.y) if DEBUG
-
       @current_node = node
+      @graph_node = node
       result = pop
       result = mod(result, num(2))
       result = pow(num(-1), result)
-      result = mult(@cc, result)
-      label(:'swch[-1]') do |next_label|
-        add BNEInstr.new(@cc = result, num(-1), next_label)
+      add CCGetInstr.new(cc = acquire_variable)
+      result = mult(cc, result)
+      label(:"swch[-1]#{@graph_node.step}") do |next_label|
+        add CCSetInstr.new(result)
+        add BNEInstr.new(result, num(-1), next_label)
         visit(worklist << node.paths[0])
       end
       visit(worklist << node.paths[1])
@@ -74,23 +81,22 @@ module RPiet
     end
 
     def visit_again(node)
-      add NodeInstr.new("re-#{node.operation}", node.step, node.x, node.y) if DEBUG
-      
       label = @jump_labels[node]
+      @graph_node = node
 
       unless label  # first time to insert label
-        label_operand = :"{node.object_id}"
+        label_operand = :"#{node.object_id}"
         label = LabelInstr.new(label_operand)
         @jump_labels[node] = label
         index = @instructions.find_index(@node_mappings[node])
-        if index
-        @instructions.insert index, label
-        end
+        @instructions.insert index, label if index
       end
 
       # This will be in proper place because all new nodes are added to
       # end of instruction list.
-      add JumpInstr.new label_operand
+      jump = JumpInstr.new(label_operand)
+      jump.comment = "back to visited #{node} => #{label_operand}"
+      add(jump)
     end
 
     def add(instruction)
@@ -100,6 +106,8 @@ module RPiet
         @node_mappings[@current_node] = instruction
         @current_node = nil
       end
+
+      instruction.graph_node = @graph_node
 
       @instructions << instruction
     end
@@ -152,6 +160,7 @@ module RPiet
 
     def instructions_for(node)
       case node.operation
+      when :noop then add(NoopInstr.new)
       when :push then push(num(node.value))
       when :pop then pop
       when :add then bin_op AddInstr
@@ -162,8 +171,8 @@ module RPiet
       when :nout then unary_op NoutInstr
       when :cout then unary_op CoutInstr
       when :gtr then
-        label(:end) do |end_label|
-          label(:true) do |true_label|
+        label(:"end#{node.object_id}") do |end_label|
+          label(:"true#{node.object_id}") do |true_label|
             add GTInstr.new pop, pop, true_label
             push(num(0))
             jump(end_label)
@@ -171,13 +180,13 @@ module RPiet
           push(num(1))
         end
       when :not then # REWRITE AS BEQ/BNE
-        label(:end) do |end_label|
-          label(:true_test_not) do |true_label|
+        label(:"end#{node.object_id}") do |end_label|
+          label(:"true_test_not#{node.object_id}") do |true_label|
             add BEQInstr.new pop, num(1), true_label
-            push(num(0))
+            push(num(1))
             jump(end_label)
           end
-          push(num(1))
+          push(num(0))
         end
       when :dup then
         variable = pop
@@ -200,10 +209,13 @@ module RPiet
         variable1, variable2 = pop, pop
         add RollInstr.new variable2, variable1
       when :cc then
-        copy(@cc = acquire_variable, num(node.value), "cc")
+        add CCSetInstr.new(num(node.value))
       when :dp then
-        copy(@dp = acquire_variable, num(node.value), "dp")
+        add DPSetInstr.new(num(node.value))
+      when :exit then
+        add ExitInstr.new
       end
+
     end
 
     def bin_op(instr_class)
