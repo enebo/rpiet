@@ -47,17 +47,17 @@ module RPiet
 
         if @last_node != instr.graph_node
           @last_node = instr.graph_node
-          @event_handler.operation(self, @last_node.operation)
+          @event_handler.operation(self, @last_node.step, @last_node.operation)
         end
 
+        @event_handler.instruction(self, instr)
         instr
       end
 
       def next_step
         instr = next_instruction
-
-        @event_handler.instruction(self, instr)
         value = instr.execute(self)
+
         if instr.jump? && value
           # FIXME: Make normative exit jump so it makes an exit bb vs randomly exiting (also removes this code)
           return false if value == :exit

@@ -35,7 +35,7 @@ module RPiet
       def self.operation_name = name.sub(/.*::/, '').sub('Node', '').downcase
 
       def exec(machine)
-        machine.event_handler.operation(machine, operation)
+        machine.event_handler.operation(machine, @step, operation)
         value = execute(machine)
         return value if branch?
         next_node

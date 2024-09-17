@@ -31,6 +31,7 @@ module RPiet
         def to_s_comment = comment ? " # #{comment}" : ""
 
         def self.operation_name = name.sub(/.*::/, '').sub('Instr', '').downcase
+        def step = graph_node.step
       end
 
       class NoopInstr < Instr

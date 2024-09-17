@@ -22,7 +22,7 @@ module RPiet
     def execution_completed(runtime)
     end
 
-    def operation(runtime, operation)
+    def operation(runtime, step, operation)
     end
 
     def instruction(runtime, instruction)
@@ -59,11 +59,11 @@ module RPiet
       end
 
       def instruction(runtime, instruction)
-        dmesg "instr: #{instruction}"
+        dmesg "  instr: #{instruction}"
       end
 
-      def operation(runtime, operation)
-        dmesg "exec: #{operation} -- #{runtime}"
+      def operation(runtime, step, operation)
+        dmesg "exec: step: \##{step} oper: #{operation}, #{runtime}"
       end
     end
 
@@ -104,7 +104,8 @@ module RPiet
         @debugger.highlight_candidate(runtime, edge_x, edge_y, next_x, next_y, valid)
       end
 
-      def operation(runtime, operation)
+      def operation(runtime, step, operation)
+        # FIXME: display step in debugger
         @debugger.operation(runtime, operation)
       end
 

@@ -93,7 +93,7 @@ module RPiet
           else
             operation = 'noop'            
           end
-          @event_handler.operation(self, operation)
+          @event_handler.operation(self, @step, operation)
           @x, @y = nx, ny
           @step += 1
           return true
@@ -101,6 +101,10 @@ module RPiet
       end
       @event_handler.execution_completed(self)
       false
+    end
+
+    def to_s
+      @pvm.to_s
     end
   end
 end
