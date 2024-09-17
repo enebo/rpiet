@@ -134,7 +134,7 @@ module RPiet
         end
 
         def execute(machine)
-          @result.value = operand
+          @result.value = decode(operand)
         end
 
         def operand = @operands[0]

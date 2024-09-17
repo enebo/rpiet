@@ -1,5 +1,6 @@
 require_relative 'direction_pointer'
 require_relative 'codel_chooser'
+require_relative 'live_machine_state'
 
 module RPiet
   ## 
@@ -8,11 +9,14 @@ module RPiet
   # dp - Direction Pointer (right, down, left, up)
   # cc - Codel Chooser (left, right)
   class Machine
-    attr_reader :dp, :cc, :stack
+    ##
+    # Each group's size represents a block value which can be used by the push operation.
     attr_accessor :block_value
 
+    include LiveMachineState
+
     def initialize
-      @stack, @dp, @cc = [], DirectionPointer.new, CodelChooser.new
+      reset_machine
       @block_value = 1
     end
 
@@ -65,7 +69,7 @@ module RPiet
     end
 
     def inspect
-      "dp: #{@dp.ascii}[#{@dp.ordinal}], cc: #{@cc.ascii(@dp)}, bv: #{@block_value}, st: #{@stack}"
+      super + ", bv: #@block_value"
     end
     alias :to_s :inspect
 

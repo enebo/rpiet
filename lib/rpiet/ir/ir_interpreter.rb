@@ -4,8 +4,7 @@ require_relative 'builder'
 module RPiet
   module IR
     class IRInterpreter
-      attr_reader :stack
-      attr_accessor :dp, :cc
+      include LiveMachineState
 
       def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
         @event_handler = event_handler
@@ -15,6 +14,12 @@ module RPiet
           builder = RPiet::Builder.new
           builder.run graph
           @instructions = builder.instructions
+          puts "# of instr: #{@instructions.length}"
+          require_relative 'constant_propagation'
+          require_relative 'dead_code_elimination'
+          require_relative 'peephole'
+          #RPiet::IR::Peephole.run(@instructions)
+          puts "# of instr: #{@instructions.length}"
         else
           @instructions = image
         end
@@ -24,7 +29,8 @@ module RPiet
       end
 
       def reset
-        @ipc, @stack, @dp, @cc = 0, [], nil, nil
+        reset_machine
+        @ipc, @last_node = 0, nil
       end
 
       def calculate_jump_table(instructions)
@@ -36,14 +42,24 @@ module RPiet
         jump_table
       end
 
-      def next_step
+      def next_instruction
         instr = @instructions[@ipc]
 
-        #puts "NODE: #{instr.graph_node} INSTR: #{instr} #{@stack}"
+        if @last_node != instr.graph_node
+          @last_node = instr.graph_node
+          @event_handler.operation(self, @last_node.operation)
+        end
+
+        instr
+      end
+
+      def next_step
+        instr = next_instruction
 
         @event_handler.instruction(self, instr)
         value = instr.execute(self)
         if instr.jump? && value
+          # FIXME: Make normative exit jump so it makes an exit bb vs randomly exiting (also removes this code)
           return false if value == :exit
           @ipc = @jump_table[value]
         else

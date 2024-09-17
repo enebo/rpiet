@@ -63,7 +63,7 @@ module RPiet
       end
 
       def operation(runtime, operation)
-        dmesg "exec: #{operation} -- #{runtime.pvm}"
+        dmesg "exec: #{operation} -- #{runtime}"
       end
     end
 

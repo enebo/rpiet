@@ -85,8 +85,9 @@ module RPiet
       @graph_node = node
 
       unless label  # first time to insert label
-        label_operand = :"#{node.object_id}"
+        label_operand = :"va.#{node.object_id}"
         label = LabelInstr.new(label_operand)
+        label.graph_node = node
         @jump_labels[node] = label
         index = @instructions.find_index(@node_mappings[node])
         @instructions.insert index, label if index
@@ -129,8 +130,10 @@ module RPiet
     end
 
     def label(label_name)
+      saved_node = @current_node
       label = LabelInstr.new(label_name)
       yield label.value
+      @current_node = saved_node
       add label
     end
 

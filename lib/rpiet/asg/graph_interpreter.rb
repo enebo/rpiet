@@ -5,22 +5,23 @@ require 'pp'
 module RPiet
   module ASG
     class GraphInterpreter
-      attr_reader :pvm
+      include LiveMachineState
 
       def initialize(image, event_handler = RPiet::Logger::NoOutput.new)
+        @event_handler = event_handler
         @graph = Parser.new(image, event_handler).run
       end
 
       def reset
-        @pvm = RPiet::Machine.new
+        reset_machine()
         @node = @graph
       end
 
       def next_step
         while @node && @node.hidden?
-          @node = @node.exec @pvm
+          @node = @node.exec self
         end
-        @node = @node.exec @pvm if @node
+        @node = @node.exec self if @node
       end
 
       def running?

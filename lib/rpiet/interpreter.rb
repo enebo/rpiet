@@ -5,7 +5,7 @@ require_relative 'event_handler'
 
 module RPiet
   class Interpreter
-    attr_reader :pvm, :source, :pixels, :x, :y, :step
+    attr_reader :pvm, :source, :pixels, :x, :y, :step, :event_handler
 
     def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
       @interpreter_thread = Thread.current

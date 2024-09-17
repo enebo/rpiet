@@ -65,7 +65,7 @@ module RPiet
     end
 
     def inspect
-      @direction.inspect
+      "#{ascii}[#{ordinal}]"
     end
     alias :to_s :inspect
   end
