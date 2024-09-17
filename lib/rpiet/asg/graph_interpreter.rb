@@ -9,7 +9,8 @@ module RPiet
 
       def initialize(image, event_handler = RPiet::Logger::NoOutput.new)
         @event_handler = event_handler
-        @graph = Parser.new(image, event_handler).run
+        # FIXME: need a way to debug parser conditionally from command line
+        @graph = Parser.new(image).run
       end
 
       def reset

@@ -176,7 +176,8 @@ module RPiet
       when :gtr then
         label(:"end#{node.object_id}") do |end_label|
           label(:"true#{node.object_id}") do |true_label|
-            add GTInstr.new pop, pop, true_label
+            value2, value1 = pop, pop
+            add GTInstr.new value1, value2, true_label
             push(num(0))
             jump(end_label)
           end
@@ -184,8 +185,8 @@ module RPiet
         end
       when :not then # REWRITE AS BEQ/BNE
         label(:"end#{node.object_id}") do |end_label|
-          label(:"true_test_not#{node.object_id}") do |true_label|
-            add BEQInstr.new pop, num(1), true_label
+          label(:"false_test_not#{node.object_id}") do |false_label|
+            add BNEInstr.new pop, num(0), false_label
             push(num(1))
             jump(end_label)
           end

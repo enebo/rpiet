@@ -65,7 +65,7 @@ module RPiet
     end
 
     def inspect
-      "#{ascii}[#{ordinal}]"
+      ordinal.to_s
     end
     alias :to_s :inspect
   end
