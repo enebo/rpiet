@@ -117,13 +117,12 @@ module RPiet
 
       def outgoing_edges(bb, edge_type=nil)
         @graph.edges.select do |edge|
-          found_edge = edge.source == bb
-          if edge_type
-            found_edge && @edge_props.edge_property(edge.source, edge.target) == edge_type
-          else
-            found_edge
-          end
+          edge.source == bb && (!edge_type || @edge_props.edge_property(edge.source, edge.target) == edge_type)
         end
+      end
+
+      def linearize
+        outgoing_edges(@entry_bb)
       end
     end
   end
