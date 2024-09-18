@@ -23,6 +23,13 @@ module RPiet
       add CCSetInstr.new(num(-1))
     end
 
+    def run(graph)
+      super
+      # We need to preserve noops while building initial instrs because backward
+      # jumps may target the first instr for a graph node and that can be a noop.
+      @instructions.delete_if { |instr| instr.operation == :noop }
+    end
+
     def copy(variable, value, comment=nil)
       add(CopyInstr.new(variable, value).tap do |instr|
         instr.comment = comment if comment
@@ -85,12 +92,14 @@ module RPiet
       @graph_node = node
 
       unless label  # first time to insert label
-        label_operand = :"va.#{node.object_id}"
+        label_operand = :"re.#{node.object_id}"
         label = LabelInstr.new(label_operand)
         label.graph_node = node
         @jump_labels[node] = label
         index = @instructions.find_index(@node_mappings[node])
         @instructions.insert index, label if index
+      else
+        label_operand = label.value
       end
 
       # This will be in proper place because all new nodes are added to

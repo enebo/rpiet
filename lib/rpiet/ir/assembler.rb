@@ -33,7 +33,11 @@ module RPiet
           # Assumes assembly is valid.
           case operation
           when 'push' then PushInstr.new(operands[0])
+          when 'dpset' then DPSetInstr.new(operands[0])
+          when 'ccset' then CCSetInstr.new(operands[0])
           when 'pop' then PopInstr.new(result)
+          when 'dpget' then DPGetInstr.new(result)
+          when 'ccset' then CCGetInstr.new(result)
           when '+' then AddInstr.new(result, *operands)
           when '-' then SubInstr.new(result, *operands)
           when '*' then MultInstr.new(result, *operands)

@@ -14,10 +14,7 @@ module RPiet
           @operands = operands
         end
 
-        def decode(operand)
-          operand = operand.value if operand.kind_of?(Operands::VariableOperand)
-          operand
-        end
+        def disasm = "#{operation}!!!!"
 
         def execute(machine) = raise ArgumentError.new "Cannot execute a base class"
 
@@ -32,12 +29,25 @@ module RPiet
 
         def self.operation_name = name.sub(/.*::/, '').sub('Instr', '').downcase
         def step = graph_node.step
+
+
+        def decode(operand)
+          operand = operand.value if operand.kind_of?(Operands::VariableOperand)
+          operand
+        end
+
+        def disasm_operand(operand)
+          operand = operand.name if operand.kind_of?(Operands::VariableOperand)
+          operand.to_s
+        end
       end
 
       class NoopInstr < Instr
         def initialize()
           super()
         end
+
+        def disasm = operation
 
         def execute(machine)
         end
@@ -58,6 +68,8 @@ module RPiet
           super(operand)
         end
 
+        def disasm = "#{operation} #{disasm_operand(operand)}"
+
         def operand = @operands[0]
 
         def to_s = "#{operation} #{operand}"
@@ -71,6 +83,8 @@ module RPiet
           @result = result
         end
 
+        def disasm = "#{result.name} = #{operation}"
+
         def to_s = "#{result} = #{operation}"
       end
 
@@ -83,6 +97,8 @@ module RPiet
           super(operand1, operand2)
           @oper, @result = oper, result
         end
+
+        def disasm = "#{result.name} = #{disasm_operand(operand1)} #{@oper} #{disasm_operand(operand2)}"
 
         def execute(machine)
           result.value = decode(operand1).send(oper, decode(operand2))
@@ -151,6 +167,8 @@ module RPiet
           raise ArgumentError.new "label instr must have a label operand.  Got: #{value}" unless value.kind_of?(Symbol)
           @value = value
         end
+
+        def disasm = "#{operation} #{disasm_operand(value)}"
 
         def operand = @value
 
@@ -226,6 +244,8 @@ module RPiet
         def depth = @operands[0]
         def num = @operands[1]
 
+        def disasm = "#{operation} #{disasm_operand(depth)} #{disasm_operand(num)}"
+
         def side_effect? = true
 
         def stack_affecting? = true
@@ -241,6 +261,8 @@ module RPiet
           super(*operands)
           @label = label
         end
+
+        def disasm = "#{operation} #{value}"
 
         def jump? = true
 
@@ -259,6 +281,8 @@ module RPiet
         def initialize(operand1, operand2, label)
           super(label, operand1, operand2)
         end
+
+        def disasm = "#{disasm_operand(operand1)} #{doc_syntax} #{disasm_operand(operand2)} #{label}"
 
         def operand1 = @operands[0]
         def operand2 = @operands[1]

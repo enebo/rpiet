@@ -7,6 +7,8 @@ run = :chowder
 time_execution = false
 codel_size = 1
 
+dump = nil
+
 log = RPiet::Logger::NoOutput
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} -d image_file"
@@ -14,6 +16,7 @@ opts = OptionParser.new do |opts|
   opts.on("-t", "--time", "time execution") { time_execution = true }
   opts.on("-g", "--graph", "execute AST(graph)") { run = :graph }
   opts.on("-i", "--ir", "execute IR(list)") { run = :ir }
+  opts.on("-I", "--dump-ir", "Dump image as IR instructions") { run = :ir; dump = :ir }
   opts.on("-d", "--debug style", "turn on debugging") do |style|
     log = case style
     when 'simple'
@@ -50,18 +53,22 @@ end
 
 
 runner = case run
-  when :graph
-    require 'rpiet/asg/graph_interpreter'
-    RPiet::ASG::GraphInterpreter.new(image, log.new)
-  when :ir
-    require 'rpiet/ir/ir_interpreter'
-    RPiet::IR::IRInterpreter.new(image, log.new)
-  else
-    RPiet::Interpreter.new(image, log.new)
-end
+         when :graph
+           require 'rpiet/asg/graph_interpreter'
+           RPiet::ASG::GraphInterpreter.new(image, log.new)
+         when :ir
+           require 'rpiet/ir/ir_interpreter'
+           RPiet::IR::IRInterpreter.new(image, log.new)
+         else
+           RPiet::Interpreter.new(image, log.new)
+         end
 
-start = Time.now if time_execution
-runner.run
-puts "time: #{Time.now - start}s" if time_execution
+if dump == :ir
+  puts runner.disasm
+else
+  start = Time.now if time_execution
+  runner.run
+  puts "time: #{Time.now - start}s" if time_execution
+end
 
 exit 0

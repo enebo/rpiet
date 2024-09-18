@@ -1,5 +1,7 @@
 require_relative '../asg/parser'
 require_relative 'builder'
+require_relative 'cfg'
+require_relative 'passes/peephole'
 
 module RPiet
   module IR
@@ -15,10 +17,7 @@ module RPiet
           builder.run graph
           @instructions = builder.instructions
           puts "# of instr: #{@instructions.length}"
-          require_relative 'constant_propagation'
-          require_relative 'dead_code_elimination'
-          require_relative 'peephole'
-          #RPiet::IR::Peephole.run(@instructions)
+          #@cfg = CFG.new(@instructions)
           puts "# of instr: #{@instructions.length}"
         else
           @instructions = image
@@ -26,6 +25,12 @@ module RPiet
 
         @jump_table = calculate_jump_table(@instructions) # {label -> index}
         reset
+      end
+
+      def disasm
+        @instructions.each do |instr|
+          puts instr.disasm
+        end
       end
 
       def reset
