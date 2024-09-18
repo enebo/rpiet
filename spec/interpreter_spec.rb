@@ -74,9 +74,9 @@ nb .. .. ++ ++
         interpreter = runtime.new push_pop
         interpreter.reset
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [2]
+        expect(interpreter.stack).to eq [2]
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq []
+        expect(interpreter.stack).to eq []
       end
 
       it "Can push and add" do
@@ -84,9 +84,9 @@ nb .. .. ++ ++
         interpreter.reset
         interpreter.next_step
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [2, 1]
+        expect(interpreter.stack).to eq [2, 1]
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [3]
+        expect(interpreter.stack).to eq [3]
       end
 
       it "Can push and subtract" do
@@ -94,9 +94,9 @@ nb .. .. ++ ++
         interpreter.reset
         interpreter.next_step
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [2, 1]
+        expect(interpreter.stack).to eq [2, 1]
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [1]
+        expect(interpreter.stack).to eq [1]
       end
 
       it "Can push and multiply" do
@@ -104,9 +104,9 @@ nb .. .. ++ ++
         interpreter.reset
         interpreter.next_step
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [2, 2]
+        expect(interpreter.stack).to eq [2, 2]
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [4]
+        expect(interpreter.stack).to eq [4]
       end
 
       it "Can push and divide" do
@@ -114,9 +114,9 @@ nb .. .. ++ ++
         interpreter.reset
         interpreter.next_step
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [2, 2]
+        expect(interpreter.stack).to eq [2, 2]
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [1]
+        expect(interpreter.stack).to eq [1]
       end
 
       it "Can push and mod" do
@@ -124,9 +124,9 @@ nb .. .. ++ ++
         interpreter.reset
         interpreter.next_step
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [2, 2]
+        expect(interpreter.stack).to eq [2, 2]
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [0]
+        expect(interpreter.stack).to eq [0]
       end
 
       it "Can push and not" do
@@ -134,19 +134,19 @@ nb .. .. ++ ++
         interpreter.reset
         interpreter.next_step
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [2, 2]
+        expect(interpreter.stack).to eq [2, 2]
         interpreter.next_step
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [1]
+        expect(interpreter.stack).to eq [1]
       end
 
       it "Can skip white and push and pop" do
         interpreter = runtime.new push_pop
         interpreter.reset
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq [2]
+        expect(interpreter.stack).to eq [2]
         interpreter.next_step
-        expect(interpreter.pvm.stack).to eq []
+        expect(interpreter.stack).to eq []
       end
     end
   end

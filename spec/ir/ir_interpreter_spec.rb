@@ -67,10 +67,10 @@ describe "RPiet::IR::IRInterpreter" do
   end
 
   it "can exec jump" do
-    interp = ir_interp(assemble("jump label\npush 1\nlabel label\n"))
+    interp = ir_interp(assemble("jump label\npush 1\nlabel label\npush 0\n"))
     interp.next_step
     interp.next_step
-    expect(interp.stack).to eq([])
+    expect(interp.stack).to eq([0])
   end
 
   it "can exec bne" do

@@ -41,7 +41,7 @@ module RPiet
       def calculate_jump_table(instructions)
         jump_table = {}
         instructions.each_with_index do |instr, i|
-          # We go one past label since it is merely a marker
+          # We go one past label since label instructions just mark a new region of instructions
           jump_table[instr.operand] = i + 1 if instr.operation == :label
         end
         jump_table
@@ -50,7 +50,7 @@ module RPiet
       def next_instruction
         instr = @instructions[@ipc]
 
-        if @last_node != instr.graph_node
+        if instr&.graph_node && @last_node != instr.graph_node
           @last_node = instr.graph_node
           @event_handler.operation(self, @last_node.step, @last_node.operation)
         end

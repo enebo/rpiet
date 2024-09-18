@@ -106,5 +106,7 @@ module RPiet
     def to_s
       @pvm.to_s
     end
+
+    def stack = @pvm.stack
   end
 end
