@@ -5,7 +5,7 @@ require_relative 'passes/peephole'
 
 module RPiet
   module IR
-    class IRInterpreter
+    class IRCFGInterpreter
       include LiveMachineState
 
       def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
@@ -17,6 +17,12 @@ module RPiet
           builder.run graph
           @instructions = builder.instructions
           puts "# of instr: #{@instructions.length}"
+          @cfg = CFG.new(@instructions)
+          #Passes::Peephole.new(@cfg).run
+          #@cfg.write_to_dot_file
+          @instructions = @cfg.instructions
+          puts "# of instr: #{@instructions.length}"
+          #puts "INSTRS:\n#{@instructions.map { |i| i.disasm }.join("\n")}"
         else
           @instructions = image
         end
@@ -59,12 +65,11 @@ module RPiet
 
       def next_step
         instr = next_instruction
+        return false unless instr
         value = instr.execute(self)
 
         if instr.jump? && value
-          # FIXME: Make normative exit jump so it makes an exit bb vs randomly exiting (also removes this code)
-          return false if value == :exit
-          @ipc = @jump_table[value]
+          @ipc = @jump_table[value] || raise("improper jump table #{value}")
         else
           @ipc += 1
         end

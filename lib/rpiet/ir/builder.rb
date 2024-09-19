@@ -27,7 +27,7 @@ module RPiet
       super
       # We need to preserve noops while building initial instrs because backward
       # jumps may target the first instr for a graph node and that can be a noop.
-      @instructions.delete_if { |instr| instr.operation == :noop }
+      #@instructions.delete_if { |instr| instr.operation == :noop }
     end
 
     def copy(variable, value, comment=nil)

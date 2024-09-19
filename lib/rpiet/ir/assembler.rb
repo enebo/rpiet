@@ -55,6 +55,7 @@ module RPiet
           when 'roll' then RollInstr.new *operands
           when 'copy' then CopyInstr.new(result, *operands)
           when 'label' then LabelInstr.new(*operands)
+          when 'exit' then ExitInstr.new
           else
             raise ArgumentError.new("unknown operation: #{operation}")
           end

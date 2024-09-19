@@ -7,12 +7,13 @@ module RPiet
         end
 
         def run
-          @cfg.basic_blocks do |bb|
+          @cfg.basic_blocks.each do |bb|
             run_bb(bb)
           end
         end
 
         def run_bb(bb)
+          puts "RUN for #{bb.label}"
           instructions = bb.instrs
           loop do
             last_push = nil
@@ -24,8 +25,8 @@ module RPiet
                 last_push = instr
               elsif instr.kind_of?(Instructions::PopInstr) && last_push
                 changed = true
-                # puts "Replacing instructions[#{i}] = #{instructions[i]}"
-                # puts "Removing = #{last_push}"
+                 puts "Replacing instructions[#{i}] = #{instructions[i]}"
+                 puts "Removing = #{last_push}"
                 instructions[i] = Instructions::CopyInstr.new(instr.result, last_push.operand)
                 instructions.delete(last_push)
                 last_push = nil

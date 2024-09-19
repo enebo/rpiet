@@ -14,18 +14,24 @@ opts = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} -d image_file"
 
   opts.on("-t", "--time", "time execution") { time_execution = true }
-  opts.on("-g", "--graph", "execute AST(graph)") { run = :graph }
-  opts.on("-i", "--ir", "execute IR(list)") { run = :ir }
+  opts.on("-r", "--runtime runtime") do |runtime|
+    run = case runtime
+          when 'graph' then :graph
+          when 'ir' then :ir
+          when 'cfg' then :cfg
+          when 'chowder' then :chowder
+          else raise ArgumentError.new("invalid runtime specified: #{runtime}")
+          end
+
+  end
   opts.on("-I", "--dump-ir", "Dump image as IR instructions") { run = :ir; dump = :ir }
   opts.on("-d", "--debug style", "turn on debugging") do |style|
     log = case style
-    when 'simple'
-      RPiet::Logger::SimpleAsciiOutput
-    when 'complex'
-      RPiet::Logger::ComplexAsciiOutput
-    when 'graphical'
-      RPiet::Logger::Graphical
-    end
+          when 'simple' then RPiet::Logger::SimpleAsciiOutput
+          when 'complex' then RPiet::Logger::ComplexAsciiOutput
+          when 'graphical' then RPiet::Logger::Graphical
+          else raise ArgumentError.new("invalid logger specified: #{style}")
+          end
   end
   opts.on("-c", "--codel-size w", "size of codel") { |w| codel_size = w.to_i }
 end
@@ -59,6 +65,9 @@ runner = case run
          when :ir
            require 'rpiet/ir/ir_interpreter'
            RPiet::IR::IRInterpreter.new(image, log.new)
+         when :cfg
+           require 'rpiet/ir/ir_cfg_interpreter'
+           RPiet::IR::IRCFGInterpreter.new(image, log.new)
          else
            RPiet::Interpreter.new(image, log.new)
          end

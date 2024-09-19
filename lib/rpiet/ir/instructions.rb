@@ -61,6 +61,8 @@ module RPiet
         def execute(machine)
           :exit
         end
+
+        def to_s = "exit"
       end
 
       class SingleOperandInstr < Instr
@@ -149,6 +151,8 @@ module RPiet
           super(operand)
           @result = result
         end
+
+        def disasm = "#{disasm_operand(result)} = #{operation} #{disasm_operand(operand)}"
 
         def execute(machine)
           @result.value = decode(operand)
