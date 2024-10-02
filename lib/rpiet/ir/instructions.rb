@@ -136,6 +136,11 @@ module RPiet
 
       class DivInstr < MathInstr
         def initialize(result, operand1, operand2) = super(:/, result, operand1, operand2)
+
+        def execute(machine)
+          a, b = decode(operand1), decode(operand2)
+          result.value = b == 0 ? DIV_BY_ZERO_VALUE : a / b
+        end
       end
 
       class ModInstr < MathInstr

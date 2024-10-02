@@ -108,6 +108,14 @@ module RPiet
     # Add two values from stack
     class DivNode < MathNode
       def initialize(step, x, y, *)= super(step, x, y, :/)
+
+      # Note: Following npiet's div by zero value.
+      def execute(machine)
+        stack = machine.stack
+        return nil unless stack.length >= 2
+        a, b = stack.pop(2)
+        stack << (b == 0 ? DIV_BY_ZERO_VALUE : a / b)
+      end
     end
 
     ##

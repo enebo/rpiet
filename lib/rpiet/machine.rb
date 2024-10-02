@@ -3,6 +3,9 @@ require_relative 'codel_chooser'
 require_relative 'live_machine_state'
 
 module RPiet
+  # Using the value npiet decided to use if division by zero happens.
+  DIV_BY_ZERO_VALUE = 99999999
+
   ## 
   # This is a simple piet runtime to be controled by interp.
   #
@@ -44,7 +47,10 @@ module RPiet
     def add; math_op :+; end
     def sub; math_op :-; end
     def mult; math_op :*; end
-    def div; math_op :/; end
+
+    # Note: Following npiet's div by zero value.
+    def div = bin_op { |a, b| @stack << (b == 0 ? DIV_BY_ZERO_VALUE : a / b) }
+
     def mod; math_op :%; end
 
     def gtr; bin_op { |a, b| @stack << (a > b ? 1 : 0) }; end

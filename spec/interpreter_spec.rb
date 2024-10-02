@@ -44,6 +44,14 @@ nb db ++ lr ++
     EOS
   end
 
+  let(:divide_by_zero) do # [push 2, push 1, push 1, subtract, divide]
+    create_image <<-EOS
+nb db lb nb dm dy ++
+nb ++ ++ ++ ++ dy ++
+++ ++ ++ ++ ++ ++ ++
+    EOS
+  end
+
   let(:push_mod) do # [push 2, push 2, mod, ...]
     create_image <<-EOS
 nb db lb nr ++
@@ -82,8 +90,7 @@ nb .. .. ++ ++
       it "Can push and add" do
         interpreter = runtime.new push_add
         interpreter.reset
-        interpreter.next_step
-        interpreter.next_step
+        2.times { interpreter.next_step }
         expect(interpreter.stack).to eq [2, 1]
         interpreter.next_step
         expect(interpreter.stack).to eq [3]
@@ -92,8 +99,7 @@ nb .. .. ++ ++
       it "Can push and subtract" do
         interpreter = runtime.new push_subtract
         interpreter.reset
-        interpreter.next_step
-        interpreter.next_step
+        2.times { interpreter.next_step }
         expect(interpreter.stack).to eq [2, 1]
         interpreter.next_step
         expect(interpreter.stack).to eq [1]
@@ -102,8 +108,7 @@ nb .. .. ++ ++
       it "Can push and multiply" do
         interpreter = runtime.new push_multiply
         interpreter.reset
-        interpreter.next_step
-        interpreter.next_step
+        2.times { interpreter.next_step }
         expect(interpreter.stack).to eq [2, 2]
         interpreter.next_step
         expect(interpreter.stack).to eq [4]
@@ -112,18 +117,25 @@ nb .. .. ++ ++
       it "Can push and divide" do
         interpreter = runtime.new push_divide
         interpreter.reset
-        interpreter.next_step
-        interpreter.next_step
+        2.times { interpreter.next_step }
         expect(interpreter.stack).to eq [2, 2]
         interpreter.next_step
         expect(interpreter.stack).to eq [1]
       end
 
+      it "Can divide by zero" do
+        interpreter = runtime.new divide_by_zero
+        interpreter.reset
+        4.times { interpreter.next_step }
+        expect(interpreter.stack).to eq [2, 0]
+        interpreter.next_step
+        expect(interpreter.stack).to eq [99999999]
+      end
+
       it "Can push and mod" do
         interpreter = runtime.new push_mod
         interpreter.reset
-        interpreter.next_step
-        interpreter.next_step
+        2.times { interpreter.next_step }
         expect(interpreter.stack).to eq [2, 2]
         interpreter.next_step
         expect(interpreter.stack).to eq [0]
@@ -132,11 +144,9 @@ nb .. .. ++ ++
       it "Can push and not" do
         interpreter = runtime.new push_not
         interpreter.reset
-        interpreter.next_step
-        interpreter.next_step
+        2.times { interpreter.next_step }
         expect(interpreter.stack).to eq [2, 2]
-        interpreter.next_step
-        interpreter.next_step
+        2.times { interpreter.next_step }
         expect(interpreter.stack).to eq [1]
       end
 
