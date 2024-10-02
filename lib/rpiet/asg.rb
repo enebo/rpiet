@@ -93,8 +93,8 @@ module RPiet
     # Read in character from the console and push on the stack
     class CinNode < Node
       def execute(machine)
-        $stdout.write "> "
-        machine.stack << $stdin.read(1).ord
+        machine.output.write "> "
+        machine.stack << machine.input.read(1).ord
       end
     end
 
@@ -175,8 +175,8 @@ module RPiet
     # Read in number from the console and push on the stack
     class NinNode < Node
       def execute(machine)
-        puts "Enter an integer: "
-        machine.stack << $stdin.gets.to_i
+        machine.output.puts "Enter an integer: "
+        machine.stack << machine.input.gets.to_i
       end
     end
 

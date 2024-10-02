@@ -40,28 +40,43 @@ module RPiet
       end
     end
      
-    def noop; end
-    def push;  @stack << @block_value; end
-    def pop; @stack.pop; end
+    def noop
+    end
 
-    def add; math_op :+; end
-    def sub; math_op :-; end
-    def mult; math_op :*; end
+    def push = @stack << @block_value
+    def pop = @stack.pop
+
+    def add = math_op :+
+    def sub = math_op :-
+    def mult = math_op :*
 
     # Note: Following npiet's div by zero value.
     def div = bin_op { |a, b| @stack << (b == 0 ? DIV_BY_ZERO_VALUE : a / b) }
 
-    def mod; math_op :%; end
+    def mod = math_op :%
 
-    def gtr; bin_op { |a, b| @stack << (a > b ? 1 : 0) }; end
-    def not; unary_op { |top| @stack << (!top || top == 0 ? 1 : 0) }; end
-    def dup; @stack << @stack[-1] if @stack[-1]; end
-    def nout; unary_op { |top| print top }; end
-    def cout; unary_op { |top| print top.chr }; end
-    def pntr; unary_op { |top| @dp.rotate! top }; end
-    def swch; unary_op { |top| @cc.switch! top }; end
-    def nin; puts "Enter an integer: "; @stack << $stdin.gets.to_i; end
-    def cin; $stdout.write "> "; c = $stdin.read(1).ord; @stack << c; end
+    def gtr = bin_op { |a, b| @stack << (a > b ? 1 : 0) }
+    def not = unary_op { |top| @stack << (!top || top == 0 ? 1 : 0) }
+
+    def dup
+      @stack << @stack[-1] if @stack[-1]
+    end
+
+    def nout = unary_op { |top| print top }
+    def cout = unary_op { |top| print top.chr }
+    def pntr = unary_op { |top| @dp.rotate! top }
+    def swch = unary_op { |top| @cc.switch! top }
+
+    def nin
+      output.puts "Enter an integer: "
+      @stack << input.gets.to_i
+    end
+
+    def cin
+      output.write "> "
+      @stack << input.read(1).ord
+    end
+
     def roll
       bin_op do |depth, num|
         num %= depth
