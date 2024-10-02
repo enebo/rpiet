@@ -208,12 +208,10 @@ module RPiet
       when :cin then
         # Can be written in terms in nin
         variable = acquire_variable
-        add CoutInstr.new string("> ")
         add CinInstr.new variable
         push(variable)
       when :nin then
         variable = acquire_variable
-        add CoutInstr.new string("Enter an integer: ")
         add NinInstr.new variable
         push(variable)
       when :swch then

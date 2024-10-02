@@ -201,7 +201,9 @@ module RPiet
 
       class NinInstr < SingleResultInstr
         def execute(machine)
+          $stdout.print "Enter an integer: "
           result.value = $stdin.gets.to_i
+          $stdout.puts
         end
 
         def side_effect? = true
@@ -209,6 +211,7 @@ module RPiet
 
       class CinInstr < SingleResultInstr
         def execute(machine)
+          $stdout.print "> "
           result.value = $stdin.read(1).ord
         end
 
