@@ -9,41 +9,15 @@ module RPiet
         end
 
         def run
-          worklist = @cfg.postorder_bbs  # we will walk forward but want to pop to remove entries so it will appear backwards! :(
-          computed = {}
-
-          while !worklist.empty?
-            bb = worklist.pop
-            compute bb, worklist, computed
+          @cfg.linearize.each do |bb|
+            3.times do
+              push_pop_elimination(bb)
+              constant_bb(bb)
+              constant_fold_bb(bb)
+            end
           end
+          @cfg.cull
         end
-
-        def compute(bb, worklist, computed)
-          computed[bb] = true
-
-          apply_pre_meet(bb, worklist, computed)
-          compute_data_flow(bb, worklist, computed)
-        end
-
-        def compute_data_flow(bb, worklist, computed)
-          @cfg.incoming_sources.each do |source|
-            compute_meet(source, )
-          end
-        end
-
-            #            3.times do
-            #  run_bb(bb)
-              #constant_bb(bb)
-              #constant_fold_bb(bb)
-              #remove_dead_edges(bb)
-            #end
-
-            #next_bbs = @cfg.outgoing_edges(bb).map {|edge| edge.target }
-            #next_bbs.each { |bb| worklist << bb unless @processed[bb] }
-            #  end
-
-          #read_dead_bbs
-            #end
 
         def constant_bb(bb)
           instructions = bb.instrs
@@ -86,28 +60,33 @@ module RPiet
           end
         end
 
-        def run_bb(bb)
+        def push_pop_elimination(bb)
           @processed[bb] = true
           #puts "RUN for #{bb.label}"
           pushes = []  # lifo instr list
           instructions = bb.instrs
-          if instructions.find { |e| e.operation == :roll }
-            return
-          end
 
           i = 0
           while i < instructions.length
             instr = instructions[i]
             if instr.kind_of?(Instructions::PushInstr)
               pushes << instr
-              i += 1
+            elsif instr.kind_of?(Instructions::NoopInstr) && !instr.kind_of?(Instructions::LabelInstr)
+              instructions.delete(instr)
+              next
+            elsif instr.kind_of?(Instructions::RollInstr)
+              # Without knowing roll values we have no way to reason about roll so we just throw out all pushes
+              pushes = []
             elsif instr.kind_of?(Instructions::PopInstr) && !pushes.empty?
               last_push = pushes.pop
-              instructions[i] = Instructions::CopyInstr.new(instr.result, last_push.operand)
-              instructions.delete(last_push)
-            else
-              i += 1
+              #              count = count_map[last_push.operand]
+              #if !count || count == 1
+                instructions[i] = Instructions::CopyInstr.new(instr.result, last_push.operand)
+                instructions.delete(last_push)
+              #end
+              next
             end
+            i += 1
           end
         end
       end

@@ -1,6 +1,7 @@
 require_relative '../asg/parser'
 require_relative 'builder'
 require_relative 'cfg'
+require_relative 'passes/peephole'
 require_relative 'passes/push_pop_elimination_pass'
 
 module RPiet
@@ -18,10 +19,12 @@ module RPiet
           @instructions = builder.instructions
           puts "(initial) # of instr: #{@instructions.length}"
           @cfg = CFG.new(@instructions)
-          push_pop_elim = Passes::PushPopEliminationProblem.new(@cfg)
+          peephole = Passes::Peephole.new(@cfg)
+          peephole.run
+          #push_pop_elim = Passes::PushPopEliminationProblem.new(@cfg)
           #push_pop_elim.debug = true
-          push_pop_elim.run
-          @cfg.cull
+          #push_pop_elim.run
+          #@cfg.cull
           @cfg.write_to_dot_file
           passes = []
           #passes = [Passes::Peephole]

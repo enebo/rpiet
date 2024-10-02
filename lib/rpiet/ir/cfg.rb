@@ -10,6 +10,7 @@ module RPiet
     # in code and in comments.  bbs is multiple basic blacks.
     class BasicBlock
       attr_reader :label, :instrs
+      attr_accessor :debug
 
       def initialize(label)
         @label, @instrs = label, []
@@ -249,6 +250,7 @@ module RPiet
 
       def combine_bbs(bb)
         other_bb = outgoing_targets(bb)[0]
+        puts "combining #{bb.label} with #{other_bb.label}" if debug
         bb.instrs.concat(other_bb.instrs)
         remove_edge(bb, other_bb)
         replace_edge(bb, other_bb, :fall_through)
@@ -342,7 +344,7 @@ module RPiet
       def check_for_needed_jump(current_bb, next_bb, last_instr)
         return if current_bb == exit_bb
         dest = outgoing_target(current_bb, :fall_through)
-        add_jump(current_bb, dest.label, last_instr) if dest != next_bb
+        add_jump(current_bb, dest.label, last_instr) if dest && dest != next_bb
       end
 
       def add_jump(bb, label, last_instr)
