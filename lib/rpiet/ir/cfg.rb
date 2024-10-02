@@ -2,6 +2,7 @@ require_relative 'instructions'
 require 'rgl/adjacency'
 require 'rgl/dot'
 require 'rgl/edge_properties_map'
+require 'rgl/traversal'
 
 module RPiet
   module IR
@@ -73,8 +74,13 @@ module RPiet
       # Get a sequential list of instructions from this CFG that can be executed.
       # This will linearize and optimize the CFG before making the instruction
       # list.
-      def instructions
+      def instructions(*passes)
+        passes.each do |pass|
+          pass.new(self).run
+        end
+
         bbs = linearize
+
         #write_to_dot_file
         bbs.each_with_object([]) { |bb, arr| arr.concat bb.instrs }
       end
@@ -91,6 +97,18 @@ module RPiet
         else
           @graph.edges.select { |edge| outgoing_edges_match?(bb, edge, edge_type) }
         end
+      end
+
+      def outgoing_target(bb, edge_type)
+        outgoing_edges(bb, edge_type).map { |edge| edge.target }&.first
+      end
+
+      def outgoing_targets(bb)
+        outgoing_edges(bb).map { |edge| edge.target }
+      end
+
+      def incoming_sources(bb)
+        @graph.edges.select { |edge| edge.target == bb }.map {|edge| edge.source}
       end
 
       def new_bb(label)
@@ -116,6 +134,11 @@ module RPiet
         @graph.add_edge(source_bb, target_bb)
         @graph.set_edge_options(source_bb, target_bb, label: edge_type.to_s, color: edge_type_color(edge_type))
         target_bb
+      end
+
+      def remove_edge(source_bb, target_bb)
+        @edge_labels.delete([source_bb, target_bb])
+        @graph.remove_edge(source_bb, target_bb)
       end
 
       def edge_type_color(edge_type) = edge_type == :jump ? 'blue' : 'green'
@@ -173,6 +196,73 @@ module RPiet
         @edge_props = RGL::EdgePropertiesMap.new(@edge_labels, true)
       end
 
+      def cull
+        cull_dead_bbs
+        cull_isolated_bbs
+      end
+
+      def cull_dead_bbs
+        @bb_map.each_value do |bb|
+          jump_bb = outgoing_target(bb, :jump)
+
+          # How we make CFG will only have a fall_through edge if next bb has an incoming edge
+          # AND/OR if we have a jump.  We do not act on the incoming edge so we only cull if we
+          # see a constant jump
+          next unless jump_bb
+
+          fallthrough_bb = outgoing_target(bb, :fall_through)
+          last_instr = bb.instrs.last
+          if last_instr.constant?   # We can elminate an edge
+            result = last_instr.execute(nil)
+            if result
+              remove_edge(bb, fallthrough_bb)
+            else
+              remove_edge(bb, jump_bb)
+              bb.instrs.delete(last_instr)
+            end
+          end
+        end
+      end
+
+      def cull_isolated_bbs
+        removed_bbs = []
+        @bb_map.each do |label, bb|
+          if removed_bbs.include?(bb)
+            @bb_map.delete(label)
+            next
+          end
+
+          in_degree = incoming_sources(bb).size
+          if in_degree == 0
+            out_degree = @graph.out_degree(bb)
+            if out_degree == 0
+              @bb_map.delete(label)
+            elsif out_degree == 1
+              # If lone next bb has incoming edges we cannot combine
+              next_bb = outgoing_targets(bb).first
+              combine_bbs(bb) if incoming_sources(next_bb) == 0
+              removed_bbs << next_bb
+            end
+          end
+        end
+      end
+
+      def combine_bbs(bb)
+        other_bb = outgoing_targets(bb)[0]
+        bb.instrs.concat(other_bb.instrs)
+        remove_edge(bb, other_bb)
+        replace_edge(bb, other_bb, :fall_through)
+        replace_edge(bb, other_bb, :jump)
+      end
+
+      def replace_edge(bb, other_bb, edge_type)
+        other_edge = outgoing_edges(other_bb, edge_type)
+        if other_edge
+          remove_edge(edge.source, edge.target)
+          add_edge(bb, edge.target, edge_type)
+        end
+      end
+
       # Linearization rearranges basic blocks around fall throughs all being sequentially after
       # the previous fall through bb. All bbs jumped to will get put after that.
       #
@@ -192,6 +282,42 @@ module RPiet
         sorted_list
       end
 
+      def postorder_bbs
+        order = []
+        @graph.depth_first_visit(@entry_bb) { |v| order << v }
+        order
+      end
+
+      def postorder_bbs2
+        result, work_list, visited = [], [@entry_bb], {@entry_bb => true}
+
+        while !work_list.empty?
+          bb = work_list.last
+          all_children_visited = true
+          outgoing_targets(bb).each do |dest|
+            next if visited[dest]
+            visited[dest] = true
+            all_children_visited = false
+            if @graph.out_degree(dest) == 0  # should only be exit bb
+              result << dest
+            else
+              work_list << dest
+            end
+          end
+
+          if all_children_visited
+            work_list.pop
+            result << bb
+          end
+        end
+
+        result
+      end
+
+      def preorder_bbs
+        postorder_bbs.reverse
+      end
+
       private
 
       def linearize_inner(sorted_list, visited, bb)
@@ -199,8 +325,10 @@ module RPiet
         visited[bb] = true
         sorted_list << bb
 
-        outgoing_edges(bb, :fall_through).each { |edge| linearize_inner(sorted_list, visited, edge.target) }
-        outgoing_edges(bb, :jump).each { |edge| linearize_inner(sorted_list, visited, edge.target) }
+        fall_through = outgoing_target(bb, :fall_through)
+        linearize_inner(sorted_list, visited, fall_through) if fall_through
+        jump = outgoing_target(bb, :jump)
+        linearize_inner(sorted_list, visited, jump) if jump
       end
 
       def outgoing_edges_match?(bb, edge, edge_type)
@@ -213,7 +341,7 @@ module RPiet
 
       def check_for_needed_jump(current_bb, next_bb, last_instr)
         return if current_bb == exit_bb
-        dest = outgoing_edges(current_bb, :fall_through).first.target
+        dest = outgoing_target(current_bb, :fall_through)
         add_jump(current_bb, dest.label, last_instr) if dest != next_bb
       end
 

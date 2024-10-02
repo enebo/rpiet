@@ -16,7 +16,7 @@ module RPiet
           builder = RPiet::Builder.new
           builder.run graph
           @instructions = builder.instructions
-          puts "# of instr: #{@instructions.length}"
+          puts "simple ir # of instr: #{@instructions.length}"
         else
           @instructions = image
         end

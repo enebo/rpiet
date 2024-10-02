@@ -5,24 +5,14 @@ module RPiet
     class AsciiImage < RPiet::Image::Image
       def initialize(string, codel_size=1)
         super codel_size
-        lines = string.split("\n")
-        @data = []
-        lines.each do |line|
-          @data << line.split(/\s+/).map { |e| str_to_rgb(e) }
+        @data = string.each_line(chomp: true).map do |line|
+          line.split(/\s+/).map { |e| str_to_rgb(e) }
         end
       end
 
-      def raw_pixel(x, y)
-        @data[y][x]
-      end
-
-      def raw_height
-        @data.length
-      end
-
-      def raw_width
-        @data[0].length
-      end
+      def raw_pixel(x, y) = @data[y][x]
+      def raw_height = @data.length
+      def raw_width = @data[0].length
 
       STR2RGB = {
         'lr' => [0xff, 0xc0, 0xc0],
@@ -47,9 +37,7 @@ module RPiet
         '++' => [0x00, 0x00, 0x00]
       }
 
-      def str_to_rgb(str)
-        STR2RGB[str]
-      end
+      def str_to_rgb(str) = STR2RGB[str]
     end
   end
 end

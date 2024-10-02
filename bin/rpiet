@@ -24,7 +24,7 @@ opts = OptionParser.new do |opts|
           end
 
   end
-  opts.on("-I", "--dump-ir", "Dump image as IR instructions") { run = :ir; dump = :ir }
+  opts.on("-I", "--dump-ir", "Dump image as IR instructions") { dump = :ir }
   opts.on("-d", "--debug style", "turn on debugging") do |style|
     log = case style
           when 'simple' then RPiet::Logger::SimpleAsciiOutput
@@ -72,7 +72,7 @@ runner = case run
            RPiet::Interpreter.new(image, log.new)
          end
 
-if dump == :ir
+if dump && (run == :ir || run == :cfg)
   puts runner.disasm
 else
   start = Time.now if time_execution

@@ -1,7 +1,7 @@
 require_relative '../asg/parser'
 require_relative 'builder'
 require_relative 'cfg'
-require_relative 'passes/peephole'
+require_relative 'passes/push_pop_elimination_pass'
 
 module RPiet
   module IR
@@ -16,12 +16,18 @@ module RPiet
           builder = RPiet::Builder.new
           builder.run graph
           @instructions = builder.instructions
-          puts "# of instr: #{@instructions.length}"
+          puts "(initial) # of instr: #{@instructions.length}"
           @cfg = CFG.new(@instructions)
-          #Passes::Peephole.new(@cfg).run
-          #@cfg.write_to_dot_file
-          @instructions = @cfg.instructions
-          puts "# of instr: #{@instructions.length}"
+          push_pop_elim = Passes::PushPopEliminationProblem.new(@cfg)
+          #push_pop_elim.debug = true
+          push_pop_elim.run
+          @cfg.cull
+          @cfg.write_to_dot_file
+          passes = []
+          #passes = [Passes::Peephole]
+
+          @instructions = @cfg.instructions(*passes)
+          puts "(post) # of instr: #{@instructions.length}"
           #puts "INSTRS:\n#{@instructions.map { |i| i.disasm }.join("\n")}"
         else
           @instructions = image
@@ -32,6 +38,7 @@ module RPiet
       end
 
       def disasm
+        puts "SAAA"
         @instructions.each do |instr|
           puts instr.disasm
         end

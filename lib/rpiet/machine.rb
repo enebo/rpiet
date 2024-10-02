@@ -57,7 +57,7 @@ module RPiet
     def nin; puts "Enter an integer: "; @stack << $stdin.gets.to_i; end
     def cin; $stdout.write "> "; c = $stdin.read(1).ord; @stack << c; end
     def roll
-      bin_op do |depth, num| 
+      bin_op do |depth, num|
         num %= depth
         return if depth <= 0 || num == 0
         if num > 0

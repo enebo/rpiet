@@ -14,6 +14,8 @@ module RPiet
           @operands = operands
         end
 
+        def constant? = false
+
         def disasm = "#{operation}!!!!"
 
         def execute(machine) = raise ArgumentError.new "Cannot execute a base class"
@@ -290,6 +292,10 @@ module RPiet
 
         def operand1 = @operands[0]
         def operand2 = @operands[1]
+
+        def constant?
+          operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
+        end
 
         def to_s = "#{operand1} #{doc_syntax} #{operand2} -> #{label}"
       end
