@@ -44,6 +44,7 @@ module RPiet
         @work_list = []
         @already_visited = {} # state => node
         @graph = Node.create(@step, @x, @y, :noop)
+        @nodes = {}
       end
 
       def run
@@ -70,6 +71,13 @@ module RPiet
         @pvm.cc.from_ordinal! state.cc_ordinal
         @pvm.dp.from_ordinal! state.dp_ordinal
         @current_state = state
+      end
+
+      def create_node(step, x, y, operation, block_value)
+        node = Node.create(step, x, y, operation, block_value)
+        return @nodes[node] if @nodes[node]
+        @nodes[node] = node
+        node
       end
 
       def next_step
@@ -118,7 +126,7 @@ module RPiet
               @already_visited[@current_state] = node unless @already_visited[@current_state]
             end
 
-            node = Node.create(@step, nx, ny, operation, @pvm.block_value)
+            node = create_node(@step, nx, ny, operation, @pvm.block_value)
             @current_state.node.add_path(node, @current_state.cc_ordinal, @current_state.dp_ordinal)
             @already_visited[@current_state] = node unless @already_visited[@current_state]
 

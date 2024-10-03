@@ -46,7 +46,7 @@ module RPiet
           when '**' then PowInstr.new(result, *operands)
           when 'nout' then NoutInstr.new(*operands)
           when 'cout' then CoutInstr.new(*operands)
-          when '>' then GTInstr.new(*operands)
+          when '>' then GTInstr.new(result, *operands)
           when '==' then BEQInstr.new(*operands)
           when '!=' then BNEInstr.new(*operands)
           when 'jump' then JumpInstr.new(*operands)

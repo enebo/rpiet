@@ -19,17 +19,15 @@ module RPiet
           @instructions = builder.instructions
           puts "(initial) # of instr: #{@instructions.length}"
           @cfg = CFG.new(@instructions)
-          peephole = Passes::Peephole.new(@cfg)
-          peephole.run
           #push_pop_elim = Passes::PushPopEliminationProblem.new(@cfg)
           #push_pop_elim.debug = true
           #push_pop_elim.run
           #@cfg.cull
-          @cfg.write_to_dot_file
-          passes = []
+          passes = [Passes::Peephole]
           #passes = [Passes::Peephole]
 
           @instructions = @cfg.instructions(*passes)
+          @cfg.write_to_dot_file
           puts "(post) # of instr: #{@instructions.length}"
           #puts "INSTRS:\n#{@instructions.map { |i| i.disasm }.join("\n")}"
         else

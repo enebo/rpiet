@@ -77,9 +77,9 @@ describe "RPiet::IR::IRInterpreter" do
   end
 
   it "can exec gt" do
-    interp = ir_interp(assemble("2 > 1 label\npush 1\nlabel label\npush 2\n"))
+    interp = ir_interp(assemble("v1 = 2 > 1\npush v1\n"))
     2.times { interp.next_step }
-    expect(interp.stack).to eq([2])
+    expect(interp.stack).to eq([1])
   end
 
   it "can exec roll" do

@@ -77,10 +77,18 @@ describe "RPiet::IR::Assembler" do
       end
     end
 
+    it "can process gt(>)" do
+      instr = assemble("v1 = 1 > 2\n").first
+      expect(instr.operation).to eq(:gt)
+      expect(instr.result).to be_variable_operand("v1")
+      expect(instr.operand1).to be_numeric_operand(1)
+      expect(instr.operand2).to be_numeric_operand(2)
+    end
+
     context "can process branches" do
-      %w[> != ==].zip(%i[gt bne beq]).each do |oper, type|
+      %w[!= ==].zip(%i[bne beq]).each do |oper, type|
         it "can load #{oper}" do
-          instr = assemble("v2 = 1 #{oper} 2 label\n").first
+          instr = assemble("1 #{oper} 2 label\n").first
           expect(instr.operation).to eq(type)
           expect(instr.operand1).to be_numeric_operand(1)
           expect(instr.operand2).to be_numeric_operand(2)

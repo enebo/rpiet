@@ -318,9 +318,38 @@ module RPiet
         def execute(machine) = decode(operand1) != decode(operand2) ? super : nil
       end
 
-      class GTInstr  < TwoOperandJumpInstr
-        def doc_syntax = ">"
-        def execute(machine) = decode(operand1) > decode(operand2) ? super : nil
+      class GTInstr < Instr
+        attr_reader :result
+        def initialize(result, *operands)
+          super(*operands)
+          @result = result
+        end
+
+        def operand1 = operands[0]
+        def operand2 = operands[1]
+
+        def constant? = operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
+
+        def execute(machine) = result.value = decode(operand1) > decode(operand2) ? 1 : 0
+
+        def to_s = "#{result} = #{operand1} > #{operand2}"
+      end
+
+      class NEInstr < Instr
+        attr_reader :result
+        def initialize(result, *operands)
+          super(*operands)
+          @result = result
+        end
+
+        def operand1 = operands[0]
+        def operand2 = operands[1]
+
+        def constant? = operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
+
+        def execute(machine) = result.value = decode(operand1) != decode(operand2) ? 0 : 1
+
+        def to_s = "#{result} = #{operand1} > #{operand2}"
       end
 
       class DPSetInstr < SingleOperandInstr

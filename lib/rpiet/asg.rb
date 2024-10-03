@@ -10,9 +10,15 @@ module RPiet
         @step, @x, @y = step, x, y
       end
 
-      def visit(visitor)
-        visitor.visit self
+      def eql?(o)
+        x == o.x && y == o.y && operation == o.operation
       end
+
+      def hash
+        [x, y, operation].hash
+      end
+
+      def visit(visitor) = visitor.visit self
 
       # Does this node represent a branching operation?
       def branch? = false

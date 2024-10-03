@@ -7,7 +7,7 @@ describe "RPiet::IR::Passes:PushPopElimination" do
     assemble <<~EOS
       push 10
       push 5
-      10 > 2 true
+      10 != 2 true
       push 0
       jump end
       label true

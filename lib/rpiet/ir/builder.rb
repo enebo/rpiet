@@ -52,6 +52,7 @@ module RPiet
       variable = plus(dp, variable)
       dp = mod(variable, num(4))
       add DPSetInstr.new(dp)
+      # FIXME: n paths can go to same location so this should consider emitting to produce less jumps
       label(:"end_pntr#{@graph_node.step}") do |end_label|
         4.times do |i|
           if i == 3
@@ -78,12 +79,18 @@ module RPiet
       result = pow(num(-1), result)
       add CCGetInstr.new(cc = acquire_variable)
       result = mult(cc, result)
-      label(:"swch[-1]#{@graph_node.step}") do |next_label|
-        add CCSetInstr.new(result)
-        add BNEInstr.new(result, num(-1), next_label)
+
+      # both swch paths goes to same location so eliminate the jumping logic
+      if node.paths[0] == node.paths[1]
         visit(worklist << node.paths[0])
+      else
+        label(:"swch[-1]#{@graph_node.step}") do |next_label|
+          add CCSetInstr.new(result)
+          add BNEInstr.new(result, num(-1), next_label)
+          visit(worklist << node.paths[0])
+        end
+        visit(worklist << node.paths[1])
       end
-      visit(worklist << node.paths[1])
       nil
     end
 
@@ -183,24 +190,13 @@ module RPiet
       when :nout then unary_op NoutInstr
       when :cout then unary_op CoutInstr
       when :gtr then
-        label(:"end#{node.object_id}") do |end_label|
-          label(:"true#{node.object_id}") do |true_label|
-            value2, value1 = pop, pop
-            add GTInstr.new value1, value2, true_label
-            push(num(0))
-            jump(end_label)
-          end
-          push(num(1))
-        end
+        value2, value1, result = pop, pop, acquire_variable
+          add GTInstr.new result, value1, value2
+        push(result)
       when :not then # REWRITE AS BEQ/BNE
-        label(:"end#{node.object_id}") do |end_label|
-          label(:"false_test_not#{node.object_id}") do |false_label|
-            add BNEInstr.new pop, num(0), false_label
-            push(num(1))
-            jump(end_label)
-          end
-          push(num(0))
-        end
+        value1, result = pop, acquire_variable
+        add NEInstr.new result, value1, num(0)
+        push(result)
       when :dup then
         variable = pop
         push(variable)

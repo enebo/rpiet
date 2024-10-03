@@ -44,7 +44,7 @@ module RPiet
           i = 0
           while i < instructions.length
             instr = instructions[i]
-            if instr.kind_of?(Instructions::MathInstr) && instr.constant?
+            if (instr.kind_of?(Instructions::MathInstr) || instr.kind_of?(Instructions::GTInstr)) && instr.constant?
               instructions[i] = Instructions::CopyInstr.new(instr.result, instr.execute(nil))
             end
             i += 1

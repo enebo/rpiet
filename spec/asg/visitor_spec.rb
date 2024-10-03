@@ -35,7 +35,7 @@ db db db
 
   it "can visit all nodes once plus one extra visit for a cycle" do
     my_visitor.run RPiet::ASG::Parser.new(cycle).run
-    expect(my_visitor.nodes.size).to eq(11)
-    expect(my_visitor.nodes.values.inject(0) { |s, e| s += e; s}).to eq(12) # 1 node visited twice
+    expect(my_visitor.nodes.size).to eq(10)
+    expect(my_visitor.nodes.values.inject(0) { |s, e| s += e; s}).to eq(11) # 1 node visited twice
   end
 end

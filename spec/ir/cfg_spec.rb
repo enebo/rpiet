@@ -11,7 +11,7 @@ describe "RPiet::IR::CFG" do
 
   let(:gtr) {
     assemble <<~EOS
-      10 > 2 true
+      10 != 2 true
       push 0
       jump end
       label true
@@ -54,7 +54,7 @@ describe "RPiet::IR::CFG" do
     assemble <<~EOS
       push 10
       push 5
-      10 > 2 true
+      10 != 2 true
       push 0
       jump end
       label true
@@ -73,7 +73,7 @@ describe "RPiet::IR::CFG" do
     assemble <<~EOS
       push 10
       push 5
-      10 > 2 true
+      10 != 2 true
       label foo
       push 0
       jump end
