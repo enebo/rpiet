@@ -90,5 +90,13 @@ describe "RPiet::IR::IRInterpreter" do
     interp = ir_interp(assemble("push 1\npush 2\npush 3\npush 4\npush 3\npush 2\nv1 = pop\nv2 = pop\nroll v2 v1\n"))
     9.times { interp.next_step }
     expect(interp.stack).to eq([1, 3, 4, 2])  # <- [1,2,3,4] roll 3, 2
+
+    interp = ir_interp(assemble("push 1\npush 2\npush 3\npush 4\npush 4\npush -1\nv1 = pop\nv2 = pop\nroll v2 v1\n"))
+    9.times { interp.next_step; p interp.stack }
+    expect(interp.stack).to eq([2, 3, 4, 1])  # <- [1,2,3,4] roll 4, -1
+
+    interp = ir_interp(assemble("push 1\npush 2\npush 3\npush 4\npush 4\npush -2\nv1 = pop\nv2 = pop\nroll v2 v1\n"))
+    9.times { interp.next_step; p interp.stack }
+    expect(interp.stack).to eq([3, 4, 1, 2])  # <- [1,2,3,4] roll 4, -2
   end
 end

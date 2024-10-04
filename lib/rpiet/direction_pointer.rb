@@ -35,8 +35,16 @@ module RPiet
   class DirectionPointer
     attr_accessor :direction
 
+    def self.from_ordinal(value)
+      new.tap { |dp| dp.from_ordinal!(value) }
+    end
+
     def initialize
       @direction = RPiet::Direction::RIGHT
+    end
+
+    def ==(other)
+      @direction == other.direction
     end
 
     def rotate!(amount = 1)

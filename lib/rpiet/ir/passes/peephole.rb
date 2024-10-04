@@ -15,8 +15,46 @@ module RPiet
               constant_bb(bb)
               constant_fold_bb(bb)
             end
+
+            two_pop_optimize(bb)
           end
           @cfg.cull
+        end
+
+        #dfkslsd;lambda
+        # -- this can be generalized to fill in any operand with a pop.  It could be generalized to a poperand
+        # or tiny bit more efficient as custom types.  poperand has advantage it would only take a new operand
+        # type.
+        # -- roll decomposition - can I take 4, -1 and then rewrite it as push/pops?
+        # -- assembler needs to be written to accept negative numbers
+        def two_pop_optimize(bb)
+          instructions = bb.instrs
+          pops = []
+          dead_instrs = []
+
+          i = 0
+          while i < instructions.length
+            instr = instructions[i]
+
+            if instr.kind_of?(Instructions::PopInstr)
+              pops << instr
+            elsif instr.kind_of?(Instructions::PushInstr)
+              pops = []
+            elsif instr.respond_to?(:two_pop)
+              roll = true if instr.kind_of?(Instructions::RollInstr)
+              if pops.length >= 2
+                dead_instrs.concat(pops.pop(2))
+                instructions[i] = instr.two_pop
+              end
+              pops = [] if roll
+              roll = false
+            end
+            i += 1
+          end
+
+          dead_instrs.each do |instr|
+            instructions.delete(instr)
+          end
         end
 
         def constant_bb(bb)

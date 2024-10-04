@@ -19,8 +19,8 @@ module RPiet
       @jump_labels = {} # node -> label
       @variable_counter = 0
       @current_node = nil
-      add DPSetInstr.new(num(0))
-      add CCSetInstr.new(num(-1))
+      add DPInstr.new(num(0))
+      add CCInstr.new(num(-1))
     end
 
     def run(graph)
@@ -47,11 +47,8 @@ module RPiet
       # In stack make pntr = (pntr + 1) % 4
       @current_node = node
       @graph_node = node
-      variable = pop
-      add DPGetInstr.new(dp = acquire_variable)
-      variable = plus(dp, variable)
-      dp = mod(variable, num(4))
-      add DPSetInstr.new(dp)
+      variable, dp = pop, acquire_variable
+      add DPRotateInstr.new(dp, variable)
       # FIXME: n paths can go to same location so this should consider emitting to produce less jumps
       label(:"end_pntr#{@graph_node.step}") do |end_label|
         4.times do |i|
@@ -61,7 +58,7 @@ module RPiet
             segment_label = LabelInstr.new(:"pntr[#{i}]#{@graph_node.step}")
             next_label = segment_label.value
           end
-          add BNEInstr.new dp, i, next_label
+          add BNEInstr.new dp, DirectionPointer.from_ordinal(i), next_label
           visit(worklist << node.paths[i])
           @graph_node = node
           add segment_label unless i == 3
@@ -74,19 +71,15 @@ module RPiet
     def visit_first_swch(node, worklist)
       @current_node = node
       @graph_node = node
-      result = pop
-      result = mod(result, num(2))
-      result = pow(num(-1), result)
-      add CCGetInstr.new(cc = acquire_variable)
-      result = mult(cc, result)
+      value, cc = pop, acquire_variable
+      add CCToggleInstr.new(cc, value)
 
       # both swch paths goes to same location so eliminate the jumping logic
       if node.paths[0] == node.paths[1]
         visit(worklist << node.paths[0])
       else
         label(:"swch[-1]#{@graph_node.step}") do |next_label|
-          add CCSetInstr.new(result)
-          add BNEInstr.new(result, num(-1), next_label)
+          add BNEInstr.new(cc, CodelChooser::LEFT, next_label)
           visit(worklist << node.paths[0])
         end
         visit(worklist << node.paths[1])
@@ -216,9 +209,9 @@ module RPiet
         variable1, variable2 = pop, pop
         add RollInstr.new variable2, variable1
       when :cc then
-        add CCSetInstr.new(num(node.value))
+        add CCInstr.new(num(node.value))
       when :dp then
-        add DPSetInstr.new(num(node.value))
+        add DPInstr.new(num(node.value))
       when :exit then
         add ExitInstr.new
       end

@@ -9,7 +9,7 @@ codel_size = 1
 
 dump = nil
 
-log = RPiet::Logger::NoOutput
+log = nil
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} -d image_file"
 
@@ -27,9 +27,9 @@ opts = OptionParser.new do |opts|
   opts.on("-I", "--dump-ir", "Dump image as IR instructions") { dump = :ir }
   opts.on("-d", "--debug style", "turn on debugging") do |style|
     log = case style
-          when 'simple' then RPiet::Logger::SimpleAsciiOutput
-          when 'complex' then RPiet::Logger::ComplexAsciiOutput
-          when 'graphical' then RPiet::Logger::Graphical
+          when 'simple' then RPiet::Logger::SimpleAsciiOutput.new
+          when 'complex' then RPiet::Logger::ComplexAsciiOutput.new
+          when 'graphical' then RPiet::Logger::Graphical.new
           else raise ArgumentError.new("invalid logger specified: #{style}")
           end
   end
@@ -61,15 +61,15 @@ end
 runner = case run
          when :graph
            require 'rpiet/asg/graph_interpreter'
-           RPiet::ASG::GraphInterpreter.new(image, log.new)
+           RPiet::ASG::GraphInterpreter.new(image, log)
          when :ir
            require 'rpiet/ir/ir_interpreter'
-           RPiet::IR::IRInterpreter.new(image, log.new)
+           RPiet::IR::IRInterpreter.new(image, log)
          when :cfg
            require 'rpiet/ir/ir_cfg_interpreter'
-           RPiet::IR::IRCFGInterpreter.new(image, log.new)
+           RPiet::IR::IRCFGInterpreter.new(image, log)
          else
-           RPiet::Interpreter.new(image, log.new)
+           RPiet::Interpreter.new(image, log)
          end
 
 if dump && (run == :ir || run == :cfg)
