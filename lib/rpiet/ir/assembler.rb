@@ -14,7 +14,7 @@ module RPiet
           code.split($/).each do |line|
             result, rhs = line.split(/\s+=\s+/, 2)
             rhs, result = result, nil unless rhs
-            if rhs =~ /\s*(\S+)\s*(==|!=|\*\*|[>\*\/\-%+])\s*(\S+)(?:\s*(\S+))?\s*/
+            if rhs =~ /\s*(\S+)\s*(==|!=|\*\*|[>\*\/\-%+])\s+(\S+)(?:\s*(\S+))?\s*/
               operation, *operands = $2, *[$1, $3, $4].compact
             else
               operation, *operands = rhs.split(/\s+/)
@@ -74,7 +74,7 @@ module RPiet
               variable = assignments[operand]
               raise ArgumentError.new("Variable without assignment found: #{operand}.  Not in SSA form") unless variable
               variable
-            when /\d/ then Integer(operand)
+            when /[\d-]/ then Integer(operand)
             when '\'' then operand[1..-2]
             when /\S/ then operand.to_sym
             else raise ArgumentError.new("unknown operand: #{operand}")
