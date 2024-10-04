@@ -8,8 +8,8 @@ module RPiet
     class IRInterpreter
       include LiveMachineState
 
-      def initialize(image, event_handler=RPiet::Logger::NoOutput.new)
-        @event_handler = event_handler
+      def initialize(image, event_handler=nil)
+        handle_event_handler(@event_handler = event_handler)
         # FIXME: should pass only insructions into the interp
         if image.kind_of?(RPiet::Image::Image)
           graph = RPiet::ASG::Parser.new(image).run
@@ -38,14 +38,21 @@ module RPiet
 
       def calculate_jump_table(instructions)
         jump_table = {}
-        instructions.each_with_index do |instr, i|
-          # We go one past label since label instructions just mark a new region of instructions
-          jump_table[instr.operand] = i + 1 if instr.operation == :label
+        i = 0
+        while i < instructions.length
+          instr = instructions[i]
+
+          if instr.operation == :label
+            jump_table[instr.operand] = i
+            instructions.delete(instr)
+          else
+            i += 1
+          end
         end
         jump_table
       end
 
-      def next_instruction
+      def next_instruction_logging
         instr = @instructions[@ipc]
 
         if instr&.graph_node && @last_node != instr.graph_node
@@ -57,11 +64,14 @@ module RPiet
         instr
       end
 
-      def next_step
-        instr = next_instruction
-        value = instr.execute(self)
+      def next_instruction
+        @instructions[@ipc]
+      end
 
-        if instr.jump? && value
+      def next_step
+        value = next_instruction.execute(self)
+
+        if value
           # FIXME: Make normative exit jump so it makes an exit bb vs randomly exiting (also removes this code)
           return false if value == :exit
           @ipc = @jump_table[value]
@@ -73,6 +83,13 @@ module RPiet
 
       def run
         while next_step do
+        end
+      end
+
+      private def handle_event_handler(event_handler)
+        if event_handler
+          alias next_instruction_orig next_instruction
+          alias next_instruction next_instruction_logging
         end
       end
     end

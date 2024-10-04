@@ -65,11 +65,11 @@ module RPiet
       attempt = 1
       seen_white = false
       ex, ey = @source.group_at(@x, @y).point_for(@pvm)                         # Exit point from group
-      @event_handler.step_begin(self, ex, ey)
+      #@event_handler.step_begin(self, ex, ey)
       while attempt <= 8 do
         nx, ny = @pvm.next_possible(ex, ey)                                     # where we enter Next group
         valid = @source.valid?(nx, ny)
-        @event_handler.next_possible(self, ex, ey, nx, ny, valid)
+        #@event_handler.next_possible(self, ex, ey, nx, ny, valid)
         sleep @delay if @delay != 0
         Thread.stop if @paused
         return false if @abort
@@ -79,12 +79,12 @@ module RPiet
           attempt += 1
 
           ex, ey = @source.group_at(@x, @y).point_for(@pvm) if !seen_white
-          @event_handler.trying_again(self, ex, ey)
+          #@event_handler.trying_again(self, ex, ey)
         elsif @source.pixels[nx][ny] == RPiet::Color::WHITE
           if !seen_white
             seen_white = true
             attempt = 1
-            @event_handler.seen_white(self)
+            #@event_handler.seen_white(self)
           end
           ex, ey = nx, ny
         else
@@ -93,13 +93,13 @@ module RPiet
           else
             operation = 'noop'            
           end
-          @event_handler.operation(self, @step, operation)
+          #@event_handler.operation(self, @step, operation)
           @x, @y = nx, ny
           @step += 1
           return true
         end
       end
-      @event_handler.execution_completed(self)
+      #@event_handler.execution_completed(self)
       false
     end
 

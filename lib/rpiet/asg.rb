@@ -41,7 +41,6 @@ module RPiet
       def self.operation_name = name.sub(/.*::/, '').sub('Node', '').downcase
 
       def exec(machine)
-        machine.event_handler.operation(machine, @step, operation)
         value = execute(machine)
         return value if branch?
         next_node
@@ -54,6 +53,18 @@ module RPiet
 
       def self.create(step, x, y, operation, *extra_args)
         Nodes[operation].new step, x, y, *extra_args
+      end
+
+      # Overhead of event handler is extreme so only reference it if there is one.
+      def self.handle_event_handler(event_handler)
+        prepend NodeEventHandler if event_handler
+      end
+    end
+
+    module NodeEventHandler
+      def exec(machine)
+        machine.event_handler.operation(machine, @step, operation)
+        super
       end
     end
 
