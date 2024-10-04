@@ -51,8 +51,7 @@ module RPiet
 
         def disasm = operation
 
-        def execute(machine)
-        end
+        def execute(machine) = nil
 
         def to_s = "noop"
       end
@@ -60,17 +59,13 @@ module RPiet
       class ExitInstr < Instr
         def jump? = true
 
-        def execute(machine)
-          :exit
-        end
+        def execute(machine) = :exit
 
         def to_s = "exit"
       end
 
       class SingleOperandInstr < Instr
-        def initialize(operand)
-          super(operand)
-        end
+        def initialize(operand) = super(operand)
 
         def disasm = "#{operation} #{disasm_operand(operand)}"
 
@@ -106,6 +101,7 @@ module RPiet
 
         def execute(machine)
           result.value = decode(operand1).send(oper, decode(operand2))
+          nil
         end
 
         def constant?
@@ -128,6 +124,8 @@ module RPiet
 
       class SubInstr < MathInstr
         def initialize(result, operand1, operand2) = super(:-, result, operand1, operand2)
+
+        def two_pop = Sub2PopInstr.new(result)
       end
 
       class MultInstr < MathInstr
@@ -140,7 +138,42 @@ module RPiet
         def execute(machine)
           a, b = decode(operand1), decode(operand2)
           result.value = b == 0 ? DIV_BY_ZERO_VALUE : a / b
+          nil
         end
+
+        def two_pop = Div2PopInstr.new(result)
+      end
+
+      class Div2PopInstr < Instr
+        attr_reader :result
+
+        def initialize(result)
+          @result = result
+        end
+
+        def execute(machine)
+          a, b = machine.stack.pop(2)
+          result.value = b == 0 ? DIV_BY_ZERO_VALUE : a / b
+          nil
+        end
+
+        def to_s = "#{result} = <pop> / <pop>"
+      end
+
+      class Sub2PopInstr < Instr
+        attr_reader :result
+
+        def initialize(result)
+          @result = result
+        end
+
+        def execute(machine)
+          a, b = machine.stack.pop(2)
+          result.value = a - b
+          nil
+        end
+
+        def to_s = "#{result} = <pop> - <pop>"
       end
 
       class ModInstr < MathInstr
@@ -163,6 +196,7 @@ module RPiet
 
         def execute(machine)
           @result.value = decode(operand)
+          nil
         end
 
         def operand = @operands[0]
@@ -204,6 +238,7 @@ module RPiet
           machine.output.print "Enter an integer: "
           result.value = machine.input.gets.to_i
           machine.output.puts
+          nil
         end
 
         def side_effect? = true
@@ -213,6 +248,7 @@ module RPiet
         def execute(machine)
           machine.output.print "> "
           result.value = machine.input.read(1).ord
+          nil
         end
 
         def side_effect? = true
@@ -223,6 +259,7 @@ module RPiet
       class PopInstr < SingleResultInstr
         def execute(machine)
           result.value = machine.stack.pop
+          nil
         end
 
         def side_effect? = true
@@ -231,7 +268,10 @@ module RPiet
       end
 
       class PushInstr < SingleOperandInstr
-        def execute(machine) = machine.stack.push decode(operand)
+        def execute(machine)
+          machine.stack.push decode(operand)
+          nil
+        end
 
         def side_effect? = true
 
@@ -253,6 +293,7 @@ module RPiet
           elsif n < 0
             stack[-d..-1] = stack[-d...-n] + stack[-n..-1]
           end
+          nil
         end
 
         def depth = @operands[0]
@@ -265,6 +306,25 @@ module RPiet
         def stack_affecting? = true
 
         def to_s = "#{operation}(#{depth}, #{num})"
+
+        def two_pop = Roll2PopInstr.new
+      end
+
+      class Roll2PopInstr < Instr
+        def execute(machine)
+          d, n = machine.stack.pop(2)
+          n %= d
+          return if d <= 0 || num == 0
+          stack = machine.stack
+          if n > 0
+            stack[-d..-1] = stack[-n..-1] + stack[-d...-n]
+          elsif n < 0
+            stack[-d..-1] = stack[-d...-n] + stack[-n..-1]
+          end
+          nil
+        end
+
+        def to_s = "#{operation}(<pop>, <pop>)"
       end
 
       # possible jumping instructions
@@ -315,7 +375,9 @@ module RPiet
 
       class BNEInstr < TwoOperandJumpInstr
         def doc_syntax = "!="
-        def execute(machine) = decode(operand1) != decode(operand2) ? super : nil
+        def execute(machine)
+          decode(operand1) != decode(operand2) ? super : nil
+        end
       end
 
       class GTInstr < Instr
@@ -330,7 +392,10 @@ module RPiet
 
         def constant? = operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
 
-        def execute(machine) = result.value = decode(operand1) > decode(operand2) ? 1 : 0
+        def execute(machine)
+          result.value = decode(operand1) > decode(operand2) ? 1 : 0
+          nil
+        end
 
         def to_s = "#{result} = #{operand1} > #{operand2}"
       end
@@ -347,27 +412,58 @@ module RPiet
 
         def constant? = operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
 
-        def execute(machine) = result.value = decode(operand1) != decode(operand2) ? 0 : 1
+        def execute(machine)
+          result.value = decode(operand1) != decode(operand2) ? 0 : 1
+          nil
+        end
 
         def to_s = "#{result} = #{operand1} > #{operand2}"
       end
 
-      class DPSetInstr < SingleOperandInstr
-        # FIXME: I think we know operand is always a number and never a variable...remove decode()
-        def execute(machine) = machine.dp = decode(operand)
+      class DPInstr < SingleOperandInstr
+        def execute(machine)
+          machine.dp.from_ordinal!(decode(operand))
+          nil
+        end
       end
 
-      class DPGetInstr < SingleResultInstr
-        def execute(machine) = result.value = machine.dp
+      class CCInstr < SingleOperandInstr
+        def execute(machine)
+          machine.cc.from_ordinal!(decode(operand))
+          nil
+        end
       end
 
-      class CCSetInstr < SingleOperandInstr
-        # FIXME: I think we know operand is always a number and never a variable...remove decode()
-        def execute(machine) = machine.cc = decode(operand)
+      class DPRotateInstr < SingleOperandInstr
+        attr_reader :result
+        def initialize(result, operand)
+          super(operand)
+          @result = result
+        end
+
+        def execute(machine)
+          machine.dp.rotate!(decode(operand))
+          result.value = machine.dp.dup
+          nil
+        end
+
+        def to_s = "#{result} = #{operation} #{operand}"
       end
 
-      class CCGetInstr < SingleResultInstr
-        def execute(machine) = result.value = machine.cc
+      class CCToggleInstr < SingleOperandInstr
+        attr_reader :result
+        def initialize(result, operand)
+          super(operand)
+          @result = result
+        end
+
+        def execute(machine)
+          machine.cc.switch!(decode(operand))
+          result.value = machine.cc.dup
+          nil
+        end
+
+        def to_s = "#{result} = #{operation} #{operand}"
       end
     end
   end
