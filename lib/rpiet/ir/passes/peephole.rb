@@ -14,6 +14,7 @@ module RPiet
               push_pop_elimination(bb)
               constant_bb(bb)
               constant_fold_bb(bb)
+              roll_elimination(bb)
             end
 
             two_pop_optimize(bb)
@@ -21,12 +22,52 @@ module RPiet
           @cfg.cull
         end
 
+        def roll_elimination(bb)
+          instructions = bb.instrs
+          @roll_vars ||= 0
+          i = 0
+          while i < instructions.length
+            instr = instructions[i]
+            if instr.kind_of?(Instructions::RollInstr) && instr.constant?
+              new_instructions = []
+              new_variables = []
+              depth = instr.depth
+              depth.times do
+                variable = Operands::VariableOperand.new("r#{@roll_vars}")
+                @roll_vars += 1
+                pop = Instructions::PopInstr.new(variable)
+                new_variables << variable
+                new_instructions << pop
+              end
+              num = instr.num
+              if num > 0
+                new_variables[0...num].each do |var|
+                  new_instructions << Instructions::PushInstr.new(var)
+                end
+                new_variables[num..-1].reverse_each do |var|
+                  new_instructions << Instructions::PushInstr.new(var)
+                end
+              else
+                num = -num
+                new_variables[num..-1].reverse_each do |var|
+                  new_instructions << Instructions::PushInstr.new(var)
+                end
+                new_variables[0...num].each do |var|
+                  new_instructions << Instructions::PushInstr.new(var)
+                end
+              end
+
+              instructions[i, 1] = new_instructions
+            end
+            i += 1
+          end
+        end
+
         #dfkslsd;lambda
         # -- this can be generalized to fill in any operand with a pop.  It could be generalized to a poperand
         # or tiny bit more efficient as custom types.  poperand has advantage it would only take a new operand
         # type.
         # -- roll decomposition - can I take 4, -1 and then rewrite it as push/pops?
-        # -- assembler needs to be written to accept negative numbers
         def two_pop_optimize(bb)
           instructions = bb.instrs
           pops = []
@@ -83,7 +124,8 @@ module RPiet
           while i < instructions.length
             instr = instructions[i]
             if (instr.kind_of?(Instructions::MathInstr) || instr.kind_of?(Instructions::GTInstr)) && instr.constant?
-              instructions[i] = Instructions::CopyInstr.new(instr.result, instr.execute(nil))
+              instr.execute(nil)
+              instructions[i] = Instructions::CopyInstr.new(instr.result, instr.result.value)
             end
             i += 1
           end

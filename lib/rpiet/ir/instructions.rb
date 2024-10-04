@@ -301,6 +301,8 @@ module RPiet
 
         def disasm = "#{operation} #{disasm_operand(depth)} #{disasm_operand(num)}"
 
+        def constant? = depth.kind_of?(Integer) && num.kind_of?(Integer)
+
         def side_effect? = true
 
         def stack_affecting? = true
