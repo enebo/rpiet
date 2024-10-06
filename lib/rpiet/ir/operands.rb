@@ -6,6 +6,10 @@ module RPiet
     #   2. char => String
     #   3. numeric => Integer
     module Operands
+      class Poperand
+        def to_s = "<pop>"
+      end
+
       class VariableOperand
         attr_reader :name
         attr_accessor :value

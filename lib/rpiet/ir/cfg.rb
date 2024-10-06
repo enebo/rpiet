@@ -228,22 +228,16 @@ module RPiet
       def cull_isolated_bbs
         removed_bbs = []
         @bb_map.each do |label, bb|
+          next bb == @entry_bb
           if removed_bbs.include?(bb)
             @bb_map.delete(label)
             next
           end
 
           in_degree = incoming_sources(bb).size
-          if in_degree == 0
-            out_degree = @graph.out_degree(bb)
-            if out_degree == 0
-              @bb_map.delete(label)
-            elsif out_degree == 1
-              # If lone next bb has incoming edges we cannot combine
-              next_bb = outgoing_targets(bb).first
-              combine_bbs(bb) if incoming_sources(next_bb) == 0
-              removed_bbs << next_bb
-            end
+          if in_degree == 0 # If we cannot make it to this bb delete itself and its outgoing edged
+            outgoing_targets(bb).each { |other| remove_edge(bb, other) }
+            @bb_map.delete(label)
           end
         end
       end

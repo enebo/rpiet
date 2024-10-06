@@ -17,7 +17,7 @@ module RPiet
               roll_elimination(bb)
             end
 
-            two_pop_optimize(bb)
+            poperand_optimize(bb)
           end
           @cfg.cull
         end
@@ -35,26 +35,16 @@ module RPiet
               depth.times do
                 variable = Operands::VariableOperand.new("r#{@roll_vars}")
                 @roll_vars += 1
-                pop = Instructions::PopInstr.new(variable)
                 new_variables << variable
-                new_instructions << pop
+                new_instructions << Instructions::PopInstr.new(variable)
               end
               num = instr.num
-              if num > 0
-                new_variables[0...num].each do |var|
-                  new_instructions << Instructions::PushInstr.new(var)
-                end
-                new_variables[num..-1].reverse_each do |var|
-                  new_instructions << Instructions::PushInstr.new(var)
-                end
-              else
-                num = -num
-                new_variables[num..-1].reverse_each do |var|
-                  new_instructions << Instructions::PushInstr.new(var)
-                end
-                new_variables[0...num].each do |var|
-                  new_instructions << Instructions::PushInstr.new(var)
-                end
+              num = depth+num if num < 0
+              new_variables[0...num].reverse_each do |var|
+                new_instructions << Instructions::PushInstr.new(var)
+              end
+              new_variables[num..-1].reverse_each do |var|
+                new_instructions << Instructions::PushInstr.new(var)
               end
 
               instructions[i, 1] = new_instructions
@@ -63,24 +53,47 @@ module RPiet
           end
         end
 
-        #dfkslsd;lambda
-        # -- this can be generalized to fill in any operand with a pop.  It could be generalized to a poperand
-        # or tiny bit more efficient as custom types.  poperand has advantage it would only take a new operand
-        # type.
-        # -- roll decomposition - can I take 4, -1 and then rewrite it as push/pops?
-        def two_pop_optimize(bb)
+        def poperand_optimize(bb)
           instructions = bb.instrs
           pops = []
           dead_instrs = []
+
+          uses = instructions.each_with_object({}) do |instr, h|
+            instr.operands.each do |operand|
+              if operand.kind_of?(Operands::VariableOperand)
+                h[operand] ||= 0
+                h[operand] += 1
+              end
+            end
+          end
 
           i = 0
           while i < instructions.length
             instr = instructions[i]
 
             if instr.kind_of?(Instructions::PopInstr)
+              #puts "pushing another pop #{instr}"
               pops << instr
             elsif instr.kind_of?(Instructions::PushInstr)
               pops = []
+            elsif contains_variables(instr)
+              roll = true if instr.kind_of?(Instructions::RollInstr)
+              if !pops.empty?
+                #puts "processing #{instr} with these pops #{pops.map {|p| p.disasm }.join(", ")}"
+                instr.operands.each_with_index do |operand, i|
+                  break if pops.empty?
+                  # This is at best conservative but it is wrong
+                  #puts "#{pops.last.result} <=> #{operand}"
+                  if pops.last.result == operand && uses[operand] == 1
+                    #puts "replacing #{operand} with a pop and removing #{pops.last.result}"
+                    instr.operands[i] = Operands::Poperand.new
+                    dead_instrs << pops.pop
+                  end
+                end
+              end
+
+              pops = [] if roll
+              roll = false
             elsif instr.respond_to?(:two_pop)
               roll = true if instr.kind_of?(Instructions::RollInstr)
               if pops.length >= 2
@@ -96,6 +109,10 @@ module RPiet
           dead_instrs.each do |instr|
             instructions.delete(instr)
           end
+        end
+
+        def contains_variables(instr)
+          instr.operands.filter { |operand| operand.kind_of?(Operands::VariableOperand) }
         end
 
         def constant_bb(bb)

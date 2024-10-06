@@ -33,9 +33,12 @@ module RPiet
         def step = graph_node.step
 
 
-        def decode(operand)
-          operand = operand.value if operand.kind_of?(Operands::VariableOperand)
-          operand
+        def decode(machine, operand)
+          case operand
+          when Operands::Poperand then machine.stack.pop
+          when Operands::VariableOperand then operand.value
+          else operand
+          end
         end
 
         def disasm_operand(operand)
@@ -100,7 +103,8 @@ module RPiet
         def disasm = "#{result.name} = #{disasm_operand(operand1)} #{@oper} #{disasm_operand(operand2)}"
 
         def execute(machine)
-          result.value = decode(operand1).send(oper, decode(operand2))
+          value2, value1 = decode(machine, operand2), decode(machine, operand1)
+          result.value = value1.send(oper, value2)
           nil
         end
 
@@ -136,44 +140,12 @@ module RPiet
         def initialize(result, operand1, operand2) = super(:/, result, operand1, operand2)
 
         def execute(machine)
-          a, b = decode(operand1), decode(operand2)
+          b, a = decode(machine, operand2), decode(machine, operand1)
           result.value = b == 0 ? DIV_BY_ZERO_VALUE : a / b
           nil
         end
 
         def two_pop = Div2PopInstr.new(result)
-      end
-
-      class Div2PopInstr < Instr
-        attr_reader :result
-
-        def initialize(result)
-          @result = result
-        end
-
-        def execute(machine)
-          a, b = machine.stack.pop(2)
-          result.value = b == 0 ? DIV_BY_ZERO_VALUE : a / b
-          nil
-        end
-
-        def to_s = "#{result} = <pop> / <pop>"
-      end
-
-      class Sub2PopInstr < Instr
-        attr_reader :result
-
-        def initialize(result)
-          @result = result
-        end
-
-        def execute(machine)
-          a, b = machine.stack.pop(2)
-          result.value = a - b
-          nil
-        end
-
-        def to_s = "#{result} = <pop> - <pop>"
       end
 
       class ModInstr < MathInstr
@@ -195,7 +167,7 @@ module RPiet
         def disasm = "#{disasm_operand(result)} = #{operation} #{disasm_operand(operand)}"
 
         def execute(machine)
-          @result.value = decode(operand)
+          @result.value = decode(machine, operand)
           nil
         end
 
@@ -222,13 +194,13 @@ module RPiet
 
       # input/output instructions
       class NoutInstr < SingleOperandInstr
-        def execute(machine) = print decode(operand)
+        def execute(machine) = print decode(machine, operand)
 
         def side_effect? = true
       end
 
       class CoutInstr < SingleOperandInstr
-        def execute(machine) = print decode(operand).chr
+        def execute(machine) = print decode(machine, operand).chr
 
         def side_effect? = true
       end
@@ -269,7 +241,7 @@ module RPiet
 
       class PushInstr < SingleOperandInstr
         def execute(machine)
-          machine.stack.push decode(operand)
+          machine.stack.push decode(machine, operand)
           nil
         end
 
@@ -284,7 +256,7 @@ module RPiet
         end
 
         def execute(machine)
-          d, n = decode(depth), decode(num)
+          d, n = decode(machine, depth), decode(machine, num)
           n %= d
           return if d <= 0 || num == 0
           stack = machine.stack
@@ -310,23 +282,6 @@ module RPiet
         def to_s = "#{operation}(#{depth}, #{num})"
 
         def two_pop = Roll2PopInstr.new
-      end
-
-      class Roll2PopInstr < Instr
-        def execute(machine)
-          d, n = machine.stack.pop(2)
-          n %= d
-          return if d <= 0 || num == 0
-          stack = machine.stack
-          if n > 0
-            stack[-d..-1] = stack[-n..-1] + stack[-d...-n]
-          elsif n < 0
-            stack[-d..-1] = stack[-d...-n] + stack[-n..-1]
-          end
-          nil
-        end
-
-        def to_s = "#{operation}(<pop>, <pop>)"
       end
 
       # possible jumping instructions
@@ -372,13 +327,17 @@ module RPiet
 
       class BEQInstr < TwoOperandJumpInstr
         def doc_syntax = "=="
-        def execute(machine) = decode(operand1) == decode(operand2) ? super : nil
+        def execute(machine)
+          b, a = decode(machine, operand2), decode(machine, operand1)
+          a == b ? super : nil
+        end
       end
 
       class BNEInstr < TwoOperandJumpInstr
         def doc_syntax = "!="
         def execute(machine)
-          decode(operand1) != decode(operand2) ? super : nil
+          b, a = decode(machine, operand2), decode(machine, operand1)
+          a != b ? super : nil
         end
       end
 
@@ -395,7 +354,8 @@ module RPiet
         def constant? = operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
 
         def execute(machine)
-          result.value = decode(operand1) > decode(operand2) ? 1 : 0
+          b, a = decode(machine, operand2), decode(machine, operand1)
+          result.value = a > b ? 1 : 0
           nil
         end
 
@@ -415,7 +375,8 @@ module RPiet
         def constant? = operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
 
         def execute(machine)
-          result.value = decode(operand1) != decode(operand2) ? 0 : 1
+          b, a = decode(machine, operand2), decode(machine, operand1)
+          result.value = a != b ? 0 : 1
           nil
         end
 
@@ -424,14 +385,14 @@ module RPiet
 
       class DPInstr < SingleOperandInstr
         def execute(machine)
-          machine.dp.from_ordinal!(decode(operand))
+          machine.dp.from_ordinal!(decode(machine, operand))
           nil
         end
       end
 
       class CCInstr < SingleOperandInstr
         def execute(machine)
-          machine.cc.from_ordinal!(decode(operand))
+          machine.cc.from_ordinal!(decode(machine, operand))
           nil
         end
       end
@@ -444,7 +405,7 @@ module RPiet
         end
 
         def execute(machine)
-          machine.dp.rotate!(decode(operand))
+          machine.dp.rotate!(decode(machine, operand))
           result.value = machine.dp.dup
           nil
         end
@@ -460,7 +421,7 @@ module RPiet
         end
 
         def execute(machine)
-          machine.cc.switch!(decode(operand))
+          machine.cc.switch!(decode(machine, operand))
           result.value = machine.cc.dup
           nil
         end
