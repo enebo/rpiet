@@ -43,7 +43,7 @@ module RPiet
 
     def reset
       @x, @y, @pvm, @step = 0, 0, RPiet::Machine.new, 1
-      @event_handler.initialized(self)
+      #@event_handler.initialized(self)
     end
 
     def run

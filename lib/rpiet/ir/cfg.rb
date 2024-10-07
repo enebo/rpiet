@@ -18,6 +18,11 @@ module RPiet
 
       def add_instr(instr) = @instrs << instr
 
+      # If this bb only meaningfully contains a jump (e.g. jump + noops/label)
+      def only_contains_jump?
+        instrs&.last.class == Instructions::JumpInstr && !instrs[0...-1].find { |instr| !instr.noop? }
+      end
+
       # Maybe a bit hacky but inspect is for dot output. consider changing this.
       def inspect
         str = "name: #{@label}\n\n"
@@ -119,6 +124,13 @@ module RPiet
         bb
       end
 
+      def remove_bb(bb)
+        @bb_map.delete(bb.label)
+        @graph.remove_vertex(bb)
+        incoming_sources(bb).each { |other| remove_edge(other, bb) }
+        outgoing_targets(bb).each { |other| remove_edge(bb, other) }
+      end
+
       def add_forward_edge(source_bb, target_label, forward_refs)
         target_bb = @bb_map[target_label]
 
@@ -198,8 +210,49 @@ module RPiet
       end
 
       def cull
+        #show_single_jump_bbs
         cull_dead_bbs
         cull_isolated_bbs
+        foo
+        cull_dead_bbs
+        cull_isolated_bbs
+      end
+
+      def show_single_jump_bbs
+        @bb_map.each_value do |bb|
+          puts "BB: #{bb.label}"
+          puts "---------------"
+          puts bb.instrs.map { |i| i.disasm }.join("\n")
+          puts
+        end
+      end
+
+      def foo
+        @bb_map.each_value do |bb|
+          puts "BB: #{bb.label}"
+          if @graph.out_degree(bb) == 1
+            next_bb = outgoing_target(bb, :fall_through)
+
+            if next_bb && @graph.out_degree(next_bb) == 1 && next_bb.only_contains_jump?
+              puts "JUMP REPLACE: #{bb.label} -> #{next_bb.label}"
+              jump = next_bb.instrs.last
+              bb.instrs << jump
+              remove_edge(bb, next_bb)
+              add_edge(bb, outgoing_target(next_bb, :jump), :jump)
+              next
+            end
+
+            next_bb = outgoing_target(bb, :jump)
+            if next_bb && @graph.out_degree(next_bb) == 1 && next_bb.only_contains_jump?
+              puts "JUMP REPLACE: #{bb.label} -> #{next_bb.label}"
+              jump = next_bb.instrs.last
+              bb.instrs[-1] = jump
+              remove_edge(bb, next_bb)
+              add_edge(bb, outgoing_target(next_bb, :jump), :jump)
+              next
+            end
+          end
+        end
       end
 
       def cull_dead_bbs
@@ -213,12 +266,13 @@ module RPiet
 
           fallthrough_bb = outgoing_target(bb, :fall_through)
           last_instr = bb.instrs.last
-          if last_instr.constant?   # We can elminate an edge
+          if last_instr&.constant?   # We can elminate an edge
             result = last_instr.execute(nil)
             if result
               remove_edge(bb, fallthrough_bb)
             else
               remove_edge(bb, jump_bb)
+              #puts "DELETING: #{bb.label}:#{last_instr}"
               bb.instrs.delete(last_instr)
             end
           end
@@ -228,16 +282,11 @@ module RPiet
       def cull_isolated_bbs
         removed_bbs = []
         @bb_map.each do |label, bb|
-          next bb == @entry_bb
-          if removed_bbs.include?(bb)
-            @bb_map.delete(label)
-            next
-          end
+          next if bb == @entry_bb
 
           in_degree = incoming_sources(bb).size
           if in_degree == 0 # If we cannot make it to this bb delete itself and its outgoing edged
-            outgoing_targets(bb).each { |other| remove_edge(bb, other) }
-            @bb_map.delete(label)
+            remove_bb(bb)
           end
         end
       end

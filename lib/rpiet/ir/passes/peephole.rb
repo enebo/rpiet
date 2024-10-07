@@ -18,8 +18,30 @@ module RPiet
             end
 
             poperand_optimize(bb)
+            remove_extra_cc_dp(bb)
           end
           @cfg.cull
+        end
+
+        def remove_extra_cc_dp(bb)
+          instructions = bb.instrs
+          @dps, @ccs = [], []
+
+          instructions.each do |instr|
+            case instr
+            when Instructions::DPRotateInstr
+              @dps = []
+            when Instructions::DPInstr
+              @dps << instr
+            when Instructions::CCToggleInstr
+              @ccs = []
+            when Instructions::CCInstr
+              @ccs << instr
+            end
+          end
+
+          @ccs[0...-1].each { |instr| instructions.delete(instr) } if @ccs.length > 1
+          @dps[0...-1].each { |instr| instructions.delete(instr) } if @dps.length > 1
         end
 
         def roll_elimination(bb)

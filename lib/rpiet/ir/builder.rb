@@ -43,28 +43,52 @@ module RPiet
       super node
     end
 
+    # def visit_first_pntr(node, worklist)
+    #   # In stack make pntr = (pntr + 1) % 4
+    #   @current_node = node
+    #   @graph_node = node
+    #   variable, dp = pop, acquire_variable
+    #   add DPRotateInstr.new(dp, variable)
+    #   # FIXME: n paths can go to same location so this should consider emitting to produce less jumps
+    #   label(:"end_pntr#{@graph_node.step}") do |end_label|
+    #     4.times do |i|
+    #       if i == 3
+    #         next_label = end_label
+    #       else
+    #         segment_label = LabelInstr.new(:"pntr[#{i}]#{@graph_node.step}")
+    #         next_label = segment_label.value
+    #       end
+    #       add BNEInstr.new dp, DirectionPointer.from_ordinal(i), next_label
+    #       visit(worklist << node.paths[i])
+    #       @graph_node = node
+    #       add segment_label unless i == 3
+    #     end
+    #   end
+    #
+    #   nil
+    # end
+
     def visit_first_pntr(node, worklist)
       # In stack make pntr = (pntr + 1) % 4
       @current_node = node
       @graph_node = node
       variable, dp = pop, acquire_variable
       add DPRotateInstr.new(dp, variable)
-      # FIXME: n paths can go to same location so this should consider emitting to produce less jumps
-      label(:"end_pntr#{@graph_node.step}") do |end_label|
-        4.times do |i|
-          if i == 3
-            next_label = end_label
-          else
-            segment_label = LabelInstr.new(:"pntr[#{i}]#{@graph_node.step}")
-            next_label = segment_label.value
-          end
-          add BNEInstr.new dp, DirectionPointer.from_ordinal(i), next_label
-          visit(worklist << node.paths[i])
-          @graph_node = node
-          add segment_label unless i == 3
-        end
+      labels = []
+      3.times do |i|
+        label = LabelInstr.new(:"pntr[#{i}]#{@graph_node.step}")
+        add BEQInstr.new dp, DirectionPointer.from_ordinal(i), label.value
+        labels << label
       end
+      label = LabelInstr.new(:"pntr[3]#{@graph_node.step}")
+      labels << label
+      jump label.value
 
+      4.times do |i|
+        @graph_node = node
+        add labels[i]
+        visit(worklist << node.paths[i])
+      end
       nil
     end
 

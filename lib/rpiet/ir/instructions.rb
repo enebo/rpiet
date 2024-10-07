@@ -22,6 +22,8 @@ module RPiet
 
         def jump? = false
 
+        def noop? = self.kind_of?(NoopInstr)
+
         def side_effect? = false
 
         def stack_affecting? = false
@@ -280,8 +282,6 @@ module RPiet
         def stack_affecting? = true
 
         def to_s = "#{operation}(#{depth}, #{num})"
-
-        def two_pop = Roll2PopInstr.new
       end
 
       # possible jumping instructions

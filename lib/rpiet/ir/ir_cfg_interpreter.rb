@@ -18,6 +18,7 @@ module RPiet
           builder.run graph
           @instructions = builder.instructions
           puts "(initial) # of instr: #{@instructions.length}"
+          #puts "INSTRS:\n#{@instructions.map {|i| i.disasm }.join("\n")}"
           @cfg = CFG.new(@instructions)
           #push_pop_elim = Passes::PushPopEliminationProblem.new(@cfg)
           #push_pop_elim.debug = true
@@ -39,7 +40,6 @@ module RPiet
       end
 
       def disasm
-        puts "SAAA"
         @instructions.each do |instr|
           puts instr.disasm
         end
@@ -48,7 +48,7 @@ module RPiet
       def reset
         reset_machine
         @ipc, @last_node = 0, nil
-        @count, @jump_count = 0, 0
+        #@count, @jump_count, @jumps_used = 0, 0, {}
       end
 
       def calculate_jump_table(instructions)
@@ -80,7 +80,7 @@ module RPiet
       end
 
       def next_instruction
-        @count += 1
+        #@count += 1
         @instructions[@ipc]
       end
 
@@ -90,7 +90,9 @@ module RPiet
         if value
           # FIXME: Make normative exit jump so it makes an exit bb vs randomly exiting (also removes this code)
           return false if value == :exit
-              @jump_count += 1
+          # @jump_count += 1
+          # @jumps_used[value] ||= 0
+          # @jumps_used[value] += 1
           @ipc = @jump_table[value]
         else
           @ipc += 1
@@ -102,7 +104,7 @@ module RPiet
       def run
         while next_step do
         end
-        puts "# of instrs: #{@count} #{@jump_count}"
+        #puts "# of instrs: #{@count} #{@jump_count} #{@jumps_used}"
       end
 
       private def handle_event_handler(event_handler)
