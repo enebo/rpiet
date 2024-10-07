@@ -24,10 +24,6 @@ module RPiet
 
         def noop? = self.kind_of?(NoopInstr)
 
-        def side_effect? = false
-
-        def stack_affecting? = false
-
         def to_s = operation
         def to_s_comment = comment ? " # #{comment}" : ""
 
@@ -46,6 +42,28 @@ module RPiet
         def disasm_operand(operand)
           operand = operand.name if operand.kind_of?(Operands::VariableOperand)
           operand.to_s
+        end
+      end
+
+      module ResultInstr
+        attr_reader :result
+
+        def initialize(result, *operands)
+          super(*operands)
+          @result = result
+        end
+
+        def disasm = "#{result.name} = #{operation}"
+
+        def to_s = "#{result} = #{operation}"
+      end
+
+      module TwoOperands
+        def operand1 = @operands[0]
+        def operand2 = @operands[1]
+
+        def constant?
+          operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
         end
       end
 
@@ -79,20 +97,8 @@ module RPiet
         def to_s = "#{operation} #{operand}"
       end
 
-      class SingleResultInstr < Instr
-        attr_reader :result
-
-        def initialize(result)
-          super()
-          @result = result
-        end
-
-        def disasm = "#{result.name} = #{operation}"
-
-        def to_s = "#{result} = #{operation}"
-      end
-
       class MathInstr < Instr
+        include TwoOperands
         attr_reader :oper, :result
 
         def initialize(oper, result, operand1, operand2)
@@ -110,16 +116,9 @@ module RPiet
           nil
         end
 
-        def constant?
-          operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
-        end
-
         def mathy?(operand)
           operand.kind_of?(Integer) || operand.kind_of?(Operands::VariableOperand)
         end
-
-        def operand1 = @operands[0]
-        def operand2 = @operands[1]
 
         def to_s = "#{result} = #{operand1} #{oper} #{operand2}"
       end
@@ -159,23 +158,18 @@ module RPiet
       end
 
       class CopyInstr < Instr
-        attr_reader :result
-
-        def initialize(result, operand)
-          super(operand)
-          @result = result
-        end
-
-        def disasm = "#{disasm_operand(result)} = #{operation} #{disasm_operand(operand)}"
-
-        def execute(machine)
-          @result.value = decode(machine, operand)
-          nil
-        end
+        include ResultInstr
 
         def operand = @operands[0]
 
-        def to_s = "#{result} = #{operation} #{operand}#{comment ? %Q{ # #{comment}} : ""}"
+        def disasm = super + " #{disasm_operand(operand)}"
+
+        def execute(machine)
+          result.value = decode(machine, operand)
+          nil
+        end
+
+        def to_s = super + " #{operand}#{comment ? %Q{ # #{comment}} : ""}"
       end
 
       class LabelInstr < NoopInstr
@@ -197,48 +191,42 @@ module RPiet
       # input/output instructions
       class NoutInstr < SingleOperandInstr
         def execute(machine) = print decode(machine, operand)
-
-        def side_effect? = true
       end
 
       class CoutInstr < SingleOperandInstr
         def execute(machine) = print decode(machine, operand).chr
-
-        def side_effect? = true
       end
 
-      class NinInstr < SingleResultInstr
+      class NinInstr < Instr
+        include ResultInstr
+
         def execute(machine)
           machine.output.print "Enter an integer: "
           result.value = machine.input.gets.to_i
           machine.output.puts
           nil
         end
-
-        def side_effect? = true
       end
 
-      class CinInstr < SingleResultInstr
+      class CinInstr < Instr
+        include ResultInstr
+
         def execute(machine)
           machine.output.print "> "
           result.value = machine.input.read(1).ord
           nil
         end
-
-        def side_effect? = true
       end
 
       # instructions which manipulate the stack
 
-      class PopInstr < SingleResultInstr
+      class PopInstr < Instr
+        include ResultInstr
+
         def execute(machine)
           result.value = machine.stack.pop
           nil
         end
-
-        def side_effect? = true
-
-        def stack_affecting? = true
       end
 
       class PushInstr < SingleOperandInstr
@@ -246,13 +234,10 @@ module RPiet
           machine.stack.push decode(machine, operand)
           nil
         end
-
-        def side_effect? = true
-
-        def stack_affecting? = true
       end
 
       class RollInstr < Instr
+        include TwoOperands
         def initialize(depth, num)
           super
         end
@@ -275,12 +260,6 @@ module RPiet
 
         def disasm = "#{operation} #{disasm_operand(depth)} #{disasm_operand(num)}"
 
-        def constant? = depth.kind_of?(Integer) && num.kind_of?(Integer)
-
-        def side_effect? = true
-
-        def stack_affecting? = true
-
         def to_s = "#{operation}(#{depth}, #{num})"
       end
 
@@ -301,26 +280,17 @@ module RPiet
 
         alias :value :label
 
-        # We are changing flow control so we cannot depend on stack changing without
-        # flow control algo
-        def stack_affecting? = true
-
         def to_s = "jump -> #{value}#{to_s_comment}"
       end
 
       class TwoOperandJumpInstr < JumpInstr
+        include TwoOperands
+
         def initialize(operand1, operand2, label)
           super(label, operand1, operand2)
         end
 
         def disasm = "#{disasm_operand(operand1)} #{doc_syntax} #{disasm_operand(operand2)} #{label}"
-
-        def operand1 = @operands[0]
-        def operand2 = @operands[1]
-
-        def constant?
-          operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
-        end
 
         def to_s = "#{operand1} #{doc_syntax} #{operand2} -> #{label}"
       end
@@ -342,16 +312,7 @@ module RPiet
       end
 
       class GTInstr < Instr
-        attr_reader :result
-        def initialize(result, *operands)
-          super(*operands)
-          @result = result
-        end
-
-        def operand1 = operands[0]
-        def operand2 = operands[1]
-
-        def constant? = operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
+        include ResultInstr, TwoOperands
 
         def execute(machine)
           b, a = decode(machine, operand2), decode(machine, operand1)
@@ -359,20 +320,15 @@ module RPiet
           nil
         end
 
+        def disasm = "#{disasm_operand(result)} = #{disasm_operand(operand1)} > #{disasm_operand(operand2)}"
+
         def to_s = "#{result} = #{operand1} > #{operand2}"
       end
 
       class NEInstr < Instr
-        attr_reader :result
-        def initialize(result, *operands)
-          super(*operands)
-          @result = result
-        end
+        include ResultInstr, TwoOperands
 
-        def operand1 = operands[0]
-        def operand2 = operands[1]
-
-        def constant? = operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
+        def disasm = "#{disasm_operand(result)} = #{disasm_operand(operand1)} != #{disasm_operand(operand2)}"
 
         def execute(machine)
           b, a = decode(machine, operand2), decode(machine, operand1)
@@ -398,11 +354,7 @@ module RPiet
       end
 
       class DPRotateInstr < SingleOperandInstr
-        attr_reader :result
-        def initialize(result, operand)
-          super(operand)
-          @result = result
-        end
+        include ResultInstr
 
         def execute(machine)
           machine.dp.rotate!(decode(machine, operand))
@@ -414,11 +366,7 @@ module RPiet
       end
 
       class CCToggleInstr < SingleOperandInstr
-        attr_reader :result
-        def initialize(result, operand)
-          super(operand)
-          @result = result
-        end
+        include ResultInstr
 
         def execute(machine)
           machine.cc.switch!(decode(machine, operand))
@@ -426,7 +374,7 @@ module RPiet
           nil
         end
 
-        def to_s = "#{result} = #{operation} #{operand}"
+        def to_s = super + " #{operand}"
       end
     end
   end
