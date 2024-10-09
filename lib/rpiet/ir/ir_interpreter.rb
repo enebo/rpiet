@@ -8,21 +8,25 @@ module RPiet
     class IRInterpreter
       include LiveMachineState
 
-      def initialize(image, event_handler=nil)
+      def initialize(image_or_instructions, event_handler = nil)
         handle_event_handler(@event_handler = event_handler)
-        # FIXME: should pass only insructions into the interp
-        if image.kind_of?(RPiet::Image::Image)
-          graph = RPiet::ASG::Parser.new(image).run
-          builder = RPiet::Builder.new
-          builder.run graph
-          @instructions = builder.instructions
-          puts "simple ir # of instr: #{@instructions.length}"
+
+        if image_or_instructions.kind_of?(RPiet::Image::Image)
+          process_image(image_or_instructions)
         else
-          @instructions = image
+          @instructions = image_or_instructions
         end
 
         @jump_table = calculate_jump_table(@instructions) # {label -> index}
         reset
+      end
+
+      def process_image(image)
+        graph = RPiet::ASG::Parser.new(image).run
+        builder = RPiet::Builder.new
+        builder.run graph
+        @instructions = builder.instructions
+        puts "simple ir # of instr: #{@instructions.length}"
       end
 
       def disasm

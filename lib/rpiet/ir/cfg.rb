@@ -229,14 +229,18 @@ module RPiet
 
       def foo
         @bb_map.each_value do |bb|
-          puts "BB: #{bb.label}"
+          #puts "BB: #{bb.label}"
           if @graph.out_degree(bb) == 1
             next_bb = outgoing_target(bb, :fall_through)
 
             if next_bb && @graph.out_degree(next_bb) == 1 && next_bb.only_contains_jump?
-              puts "JUMP REPLACE: #{bb.label} -> #{next_bb.label}"
+              #puts "JUMP REPLACE: #{bb.label} -> #{next_bb.label}"
               jump = next_bb.instrs.last
-              bb.instrs << jump
+              if bb.instrs[-1].kind_of?(Instructions::JumpInstr)
+                bb.instrs[-1] = jump
+              else
+                bb.instrs << jump
+              end
               remove_edge(bb, next_bb)
               add_edge(bb, outgoing_target(next_bb, :jump), :jump)
               next
@@ -244,7 +248,7 @@ module RPiet
 
             next_bb = outgoing_target(bb, :jump)
             if next_bb && @graph.out_degree(next_bb) == 1 && next_bb.only_contains_jump?
-              puts "JUMP REPLACE: #{bb.label} -> #{next_bb.label}"
+              #puts "JUMP REPLACE: #{bb.label} -> #{next_bb.label}"
               jump = next_bb.instrs.last
               bb.instrs[-1] = jump
               remove_edge(bb, next_bb)
