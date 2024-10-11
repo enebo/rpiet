@@ -45,7 +45,7 @@ module RPiet
         def ruby_operand(operand)
           case operand
           when Operands::Poperand then "machine.stack.pop"
-          when Operands::VariableOperand then '$' + operand.name
+          when Operands::VariableOperand then operand.name
           when Symbol then ":" + operand
           when Integer then operand
           when String  then "'#{operand}'"
@@ -458,10 +458,10 @@ module RPiet
             s << "  " + instr.to_ruby
             #puts "instr: #{instr.disasm}, r: #{instr.to_ruby}"
           end
-          s << "  nil\n" unless bb.instrs&.last.kind_of?(JumpInstr)
+          s << "  nil\n" unless bb.instrs&.last&.jump?
           s << "end\n"
           code = s.join('')
-          #puts "#{bb.label}:\n#{code}"
+          puts "#{bb.label}:\n#{code}"
           mega = MegaInstr.new
           mega.instance_eval code
           if bb.instrs&.first.kind_of?(LabelInstr)
@@ -471,6 +471,28 @@ module RPiet
           end
           bb.instrs << mega
         end
+      end
+
+      class PntrInstr < Instr
+        def initialize(step)
+          super()
+          @step = step
+        end
+
+        def execute(machine)
+          operands[decode(machine, operands.first).ordinal+1]
+        end
+
+        def jump? = true
+
+        def to_ruby_pre
+          "$Operands#{@step} = [#{operands[1..-1].map { |o| ":\"#{o}\""}.join(', ')}]\n"
+        end
+
+        def to_ruby = <<~"EOS"
+          o = #{ruby_operand(operands.first)}.ordinal
+          $Operands#{@step}[o]\n
+        EOS
       end
     end
   end

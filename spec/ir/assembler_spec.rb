@@ -51,7 +51,7 @@ describe "RPiet::IR::Assembler" do
     it "can load label" do
       instr = assemble("label foo\n").first
       expect(instr.operation).to eq(:label)
-      expect(instr.operand).to be_label_operand(:foo)
+      expect(instr.operand).to be_label_operand(:jump_reduction)
     end
 
     it "cannot load label with non-label operand" do

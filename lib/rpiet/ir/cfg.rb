@@ -18,6 +18,10 @@ module RPiet
 
       def add_instr(instr) = @instrs << instr
 
+      def last_instr
+        instrs&.last
+      end
+
       # If this bb only meaningfully contains a jump (e.g. jump + noops/label)
       def only_contains_jump?
         instrs&.last.class == Instructions::JumpInstr && !instrs[0...-1].find { |instr| !instr.noop? }
@@ -213,9 +217,11 @@ module RPiet
         #show_single_jump_bbs
         cull_dead_bbs
         cull_isolated_bbs
-        foo
+        remove_empty_bbs
+        jump_reduction
         cull_dead_bbs
         cull_isolated_bbs
+        recombine_pntr
       end
 
       def show_single_jump_bbs
@@ -227,7 +233,54 @@ module RPiet
         end
       end
 
-      def foo
+      # doing up to 3 branches + 1 jump can be optimized by recombining these back
+      # into a pntr instruction which can just use a jump table
+      def recombine_pntr
+        pntrs = {}
+        @bb_map.each_value do |bb|
+          last_instr = bb.last_instr
+          #puts "BB #{bb.label} #{last_instr} #{bb.instrs.size}"
+          if bb.label.to_s =~ /pntr\[3\](\d+)/
+            pntrs[$1] ||= []
+            pntrs[$1] << [$1, "3", bb]
+            next
+          end
+          if last_instr.kind_of?(Instructions::BEQInstr)
+            if last_instr.label.to_s =~ /pntr\[(\d+)\](\d+)/
+              #puts "1: #{$1}, 2: #{$2}"
+              pntrs[$2] ||= []
+              pntrs[$2] << [$2, $1, bb]
+            end
+          end
+        end
+
+        pntrs.each_value.sort { |(step, i, _), (step2, i2, _)| step <=> step2 &&  i <=> i2 }
+
+        pntrs.each_value do |list|
+          new_instr = Instructions::PntrInstr.new(list[0][0])
+          zero_bb = nil
+          list.each.each_with_index do |(step, _, bb), i|
+            if i != 3
+              label = bb.instrs.last.label
+              if i == 0
+                compare = bb.instrs.last.operand1
+                new_instr.operands << compare
+                bb.instrs[-1] = new_instr
+                zero_bb = bb
+              else
+                add_edge(zero_bb, outgoing_target(bb, :jump), :jump)
+                remove_bb(bb)
+              end
+              new_instr.operands << label
+            else
+              add_edge(zero_bb, bb, :jump)
+              new_instr.operands << bb.label
+            end
+          end
+        end
+      end
+
+      def jump_reduction
         @bb_map.each_value do |bb|
           #puts "BB: #{bb.label}"
           if @graph.out_degree(bb) == 1
@@ -259,6 +312,22 @@ module RPiet
         end
       end
 
+      def remove_empty_bbs
+        # This is a bit wonky but pntr[3] needs fall through to jump to body for pntr[3]
+        # I do not think the pattern can occur any other way so I am assuming a lot in this
+        # method about its structure.  For CFG interp this has no impact but for displaying
+        # The CFG itself it removes an empty bb.  It also makes recombining the pntr to
+        # a jump table simpler.
+        @bb_map.each_value do |bb|
+          if @graph.out_degree(bb) == 1 && bb.instrs.empty?
+            target = outgoing_target(bb, :fall_through)
+            source = incoming_sources(bb).first
+            remove_bb(bb)
+            add_edge(source, target, :fall_through)
+          end
+        end
+      end
+
       def cull_dead_bbs
         @bb_map.each_value do |bb|
           jump_bb = outgoing_target(bb, :jump)
@@ -276,7 +345,7 @@ module RPiet
               remove_edge(bb, fallthrough_bb)
             else
               remove_edge(bb, jump_bb)
-              #puts "DELETING: #{bb.label}:#{last_instr}"
+              puts "DELETING: #{bb.label}:#{last_instr}"
               bb.instrs.delete(last_instr)
             end
           end
@@ -284,7 +353,6 @@ module RPiet
       end
 
       def cull_isolated_bbs
-        removed_bbs = []
         @bb_map.each do |label, bb|
           next if bb == @entry_bb
 
@@ -376,8 +444,10 @@ module RPiet
 
         fall_through = outgoing_target(bb, :fall_through)
         linearize_inner(sorted_list, visited, fall_through) if fall_through
-        jump = outgoing_target(bb, :jump)
-        linearize_inner(sorted_list, visited, jump) if jump
+        outgoing_targets(bb).each do |jump|
+          next if jump == fall_through
+          linearize_inner(sorted_list, visited, jump) if jump
+        end
       end
 
       def outgoing_edges_match?(bb, edge, edge_type)
@@ -385,7 +455,11 @@ module RPiet
       end
 
       def check_for_unneeded_jump(current_bb, next_bb, jump)
-        current_bb.instrs.pop if jump.label == next_bb.label
+        if jump.label == next_bb.label
+          remove_edge(current_bb, next_bb)
+          add_edge(current_bb, next_bb, :fall_through)
+          current_bb.instrs.pop
+        end
       end
 
       def check_for_needed_jump(current_bb, next_bb, last_instr)
