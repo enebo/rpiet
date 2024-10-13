@@ -23,7 +23,7 @@ module RPiet
 
         def noop? = self.kind_of?(NoopInstr)
 
-        def to_ruby = raise ArgumentError.new "missing to_ruby impl"
+        def to_ruby(cfg, bb) = raise ArgumentError.new "missing to_ruby impl"
         def to_s = operation.to_s
         def to_s_comment = comment ? " # #{comment}" : ""
 
@@ -44,7 +44,7 @@ module RPiet
         end
         def ruby_operand(operand)
           case operand
-          when Operands::Poperand then "machine.stack.pop"
+          when Operands::Poperand then "@stack.pop"
           when Operands::VariableOperand then operand.name
           when Symbol then ":" + operand
           when Integer then operand
@@ -75,6 +75,19 @@ module RPiet
         def constant?
           operand1.kind_of?(Integer) && operand2.kind_of?(Integer)
         end
+
+        def stack_independent?
+          (operand1.kind_of?(Integer) || operand1.kind_of?(Operands::VariableOperand)) ||
+            (operand2.kind_of?(Integer) || operand2.kind_of?(Operands::VariableOperand))
+        end
+
+        def ruby_assign_2
+          if operand1.kind_of?(Operands::Poperand) && operand2.kind_of?(Operands::Poperand)
+            "b, a = @stack.pop(2)"
+          else
+            "b, a = #{ruby_operand(operand2)}, #{ruby_operand(operand1)}"
+          end
+        end
       end
 
       class NoopInstr < Instr
@@ -84,14 +97,14 @@ module RPiet
 
         def disasm = operation
         def execute(machine) = nil
-        def to_ruby = "# noop\n"
+        def to_ruby(cfg, bb) = "# noop\n"
         def to_s = "noop"
       end
 
       class ExitInstr < Instr
         def execute(machine) = :exit
         def jump? = true
-        def to_ruby = "return :exit\n"
+        def to_ruby(cfg, bb) = "return :exit\n"
         def to_s = "exit"
       end
 
@@ -127,10 +140,16 @@ module RPiet
           operand.kind_of?(Integer) || operand.kind_of?(Operands::VariableOperand)
         end
 
-        def to_ruby = <<~"EOS"
-          b, a = #{ruby_operand(operand2)}, #{ruby_operand(operand1)}
-          #{ruby_operand(result)} = a #{oper} b
-        EOS
+        def to_ruby(cfg, bb)
+          if stack_independent?
+            "  #{ruby_operand(result)} = #{ruby_operand(operand1)} #{oper} #{ruby_operand(operand2)}\n"
+          else
+            <<~"EOS"
+              #{ruby_assign_2}
+              #{ruby_operand(result)} = a #{oper} b
+           EOS
+          end
+        end
 
         def to_s = "#{result} = #{operand1} #{oper} #{operand2}"
       end
@@ -177,7 +196,7 @@ module RPiet
           nil
         end
 
-        def to_ruby = "#{ruby_operand(result)} = #{ruby_operand(operand)}\n"
+        def to_ruby(cfg, bb) = "#{ruby_operand(result)} = #{ruby_operand(operand)}\n"
         def to_s = super + " #{operand}#{comment ? %Q{ # #{comment}} : ""}"
       end
 
@@ -194,19 +213,19 @@ module RPiet
 
         def operand = @value
 
-        def to_ruby = "# #{value}\n"
+        def to_ruby(cfg, bb) = "  # #{value}\n"
         def to_s = "#{operation}(#{value})"
       end
 
       # input/output instructions
       class NoutInstr < SingleOperandInstr
         def execute(machine) = print decode(machine, operand)
-        def to_ruby = "print #{ruby_operand(operand)}\n"
+        def to_ruby(cfg, bb) = "  print #{ruby_operand(operand)}\n"
       end
 
       class CoutInstr < SingleOperandInstr
         def execute(machine) = print decode(machine, operand).chr
-        def to_ruby = "print #{ruby_operand(operand)}.chr\n"
+        def to_ruby(cfg, bb) = "  print #{ruby_operand(operand)}.chr\n"
       end
 
       class NinInstr < Instr
@@ -218,10 +237,10 @@ module RPiet
           machine.output.puts
           nil
         end
-        def to_ruby = <<~"EOS"
-          machine.output.print "Enter an integer: "
-          #{ruby_operand(result)} = machine.input.gets.to_i
-          machine.output.puts
+        def to_ruby(cfg, bb) = <<~"EOS"
+          output.print "Enter an integer: "
+          #{ruby_operand(result)} = input.gets.to_i
+          output.puts
         EOS
       end
 
@@ -234,9 +253,9 @@ module RPiet
           nil
         end
 
-        def to_ruby = <<~"EOS"
-          machine.output.print "> "
-          #{ruby_operand(result)} = machine.input.read(1).ord
+        def to_ruby(cfg, bb) = <<~"EOS"
+          output.print "> "
+          #{ruby_operand(result)} = input.read(1).ord
         EOS
       end
 
@@ -250,7 +269,7 @@ module RPiet
           nil
         end
 
-        def to_ruby = "#{ruby_operand(result)} = machine.stack.pop\n"
+        def to_ruby(cfg, bb) = "  #{ruby_operand(result)} = @stack.pop\n"
       end
 
       class PushInstr < SingleOperandInstr
@@ -258,7 +277,7 @@ module RPiet
           machine.stack.push decode(machine, operand)
           nil
         end
-        def to_ruby = "machine.stack.push #{ruby_operand(operand)}\n"
+        def to_ruby(cfg, bb) = "  @stack.push #{ruby_operand(operand)}\n"
       end
 
       class RollInstr < Instr
@@ -285,17 +304,16 @@ module RPiet
 
         def disasm = "#{operation} #{disasm_operand(depth)} #{disasm_operand(num)}"
 
-        def to_ruby = <<~"EOS"
+        def to_ruby(cfg, bb) = <<~"EOS"
           d, n = #{ruby_operand(depth)}, #{ruby_operand(num)}
           n %= d
-          #if d > 0 && num != 0
-            stack = machine.stack
+          if d > 0 && num != 0
             if n > 0
-              stack[-d..-1] = stack[-n..-1] + stack[-d...-n]
+              @stack[-d..-1] = @stack[-n..-1] + @stack[-d...-n]
             elsif n < 0
-              stack[-d..-1] = stack[-d...-n] + stack[-n..-1]
+              @stack[-d..-1] = @stack[-d...-n] + @stack[-n..-1]
             end
-          #end
+          end
         EOS
 
         def to_s = "#{operation}(#{depth}, #{num})"
@@ -318,7 +336,7 @@ module RPiet
 
         alias :value :label
 
-        def to_ruby = "return :\"#{label}\"\n"
+        def to_ruby(cfg, bb) = "  return :\"#{label}\"\n"
         def to_s = "jump -> #{value}#{to_s_comment}"
       end
 
@@ -340,10 +358,16 @@ module RPiet
           b, a = decode(machine, operand2), decode(machine, operand1)
           a == b ? super : nil
         end
-        def to_ruby = <<~"EOS"
-          b, a = #{ruby_operand(operand2)}, #{ruby_operand(operand1)}
-          return a == b ? :"#{label}" : nil
-        EOS
+        def to_ruby(cfg, bb)
+          if stack_independent?
+            "  #{ruby_operand(operand1)} == #{ruby_operand(operand2)} ? :\"#{label}\" : #{cfg.outgoing_target(bb, :fall_through)&.label}\n"
+          else
+            <<~"EOS"
+              #{ruby_assign_2}
+              return a == b ? :"#{label}" : :"#{cfg.outgoing_target(bb, :fall_through)&.label}"
+            EOS
+          end
+        end
       end
 
       class BNEInstr < TwoOperandJumpInstr
@@ -352,10 +376,16 @@ module RPiet
           b, a = decode(machine, operand2), decode(machine, operand1)
           a != b ? super : nil
         end
-        def to_ruby = <<~"EOS"
-          b, a = #{ruby_operand(operand2)}, #{ruby_operand(operand1)}
-          return a != b ? :"#{label}" : nil
-        EOS
+        def to_ruby(cfg, bb)
+          if stack_independent?
+            "  #{ruby_operand(operand1)} != #{ruby_operand(operand2)} ? :\"#{label}\" : #{cfg.outgoing_target(bb, :fall_through)&.label}\n"
+          else
+            <<~"EOS"
+              #{ruby_assign_2}
+              return a != b ? :"#{label}" : :"#{cfg.outgoing_target(bb, :fall_through)&.label}"
+            EOS
+          end
+        end
       end
 
       class GTInstr < Instr
@@ -369,12 +399,16 @@ module RPiet
 
         def disasm = "#{disasm_operand(result)} = #{disasm_operand(operand1)} > #{disasm_operand(operand2)}"
 
-        def to_ruby = <<~"EOS"
-          b, a = #{ruby_operand(operand2)}, #{ruby_operand(operand1)}
-          #{ruby_operand(result)} = a > b ? 1 : 0
-        EOS
-
-        def to_s = "#{result} = #{operand1} > #{operand2}"
+        def to_ruby(cfg, bb)
+          if stack_independent?
+            "  #{ruby_operand(result)} = #{ruby_operand(operand1)} > #{ruby_operand(operand2)} ? 1 : 0\n"
+          else
+            <<~"EOS"
+              #{ruby_assign_2}
+              #{ruby_operand(result)} = a > b ? 1 : 0
+           EOS
+          end
+        end
       end
 
       class NEInstr < Instr
@@ -388,10 +422,16 @@ module RPiet
           nil
         end
 
-        def to_ruby = <<~"EOS"
-          b, a = #{ruby_operand(operand2)}, #{ruby_operand(operand1)}
-          #{ruby_operand(result)} = a != b ? 0 : 1
-        EOS
+        def to_ruby(cfg, bb)
+          if stack_independent?
+            "  #{ruby_operand(result)} = #{ruby_operand(operand1)} != #{ruby_operand(operand2)} ? 0 : 1\n"
+          else
+            <<~"EOS"
+              #{ruby_assign_2}
+              #{ruby_operand(result)} = a != b ? 0 : 1
+           EOS
+          end
+        end
 
         def to_s = "#{result} = #{operand1} > #{operand2}"
       end
@@ -401,7 +441,7 @@ module RPiet
           machine.dp.from_ordinal!(decode(machine, operand))
           nil
         end
-        def to_ruby = "machine.dp.from_ordinal!(#{ruby_operand(operand)})\n"
+        def to_ruby(cfg, bb) = "  @dp.from_ordinal!(#{ruby_operand(operand)})\n"
       end
 
       class CCInstr < SingleOperandInstr
@@ -409,7 +449,7 @@ module RPiet
           machine.cc.from_ordinal!(decode(machine, operand))
           nil
         end
-        def to_ruby = "machine.cc.from_ordinal!(#{ruby_operand(operand)})\n"
+        def to_ruby(cfg, bb) = "  @cc.from_ordinal!(#{ruby_operand(operand)})\n"
       end
 
       class DPRotateInstr < SingleOperandInstr
@@ -421,10 +461,7 @@ module RPiet
           nil
         end
 
-        def to_ruby = <<~"EOS"
-          machine.dp.rotate!(#{ruby_operand(operand)})
-          #{ruby_operand(result)} = machine.dp.dup
-        EOS
+        def to_ruby(cfg, bb) = "  #{ruby_operand(result)} = @dp.rotate!(#{ruby_operand(operand)})\n"
 
         def to_s = "#{result} = #{operation} #{operand}"
       end
@@ -438,10 +475,7 @@ module RPiet
           nil
         end
 
-        def to_ruby = <<~"EOS"
-          machine.cc.switch!(#{ruby_operand(operand)})
-          #{ruby_operand(result)} = machine.cc.dup
-        EOS
+        def to_ruby(cfg, bb) = "  #{ruby_operand(result)} = @cc.switch!(#{ruby_operand(operand)})\n"
 
         def to_s = super + " #{operand}"
       end
@@ -452,18 +486,22 @@ module RPiet
           super
         end
 
-        def self.create(bb)
-          s = ["def execute(machine)\n"]
+        def self.create(method_object, cfg, bb)
+          s = ["def #{bb.label}()\n"]
           bb.instrs.each do |instr|
-            s << "  " + instr.to_ruby
-            #puts "instr: #{instr.disasm}, r: #{instr.to_ruby}"
+            s << instr.to_ruby(cfg, bb)
+            #puts "instr: #{instr.disasm}, r: #{instr.to_ruby(cfg, bb)}"
           end
-          s << "  nil\n" unless bb.instrs&.last&.jump?
+          unless bb.instrs&.last&.jump?
+            target = cfg.outgoing_target(bb, :fall_through)&.label
+            line = target ? ":\"#{target}\"" : 'nil'
+            s << "#{line}\n"
+          end
           s << "end\n"
           code = s.join('')
           puts "#{bb.label}:\n#{code}"
           mega = MegaInstr.new
-          mega.instance_eval code
+          method_object.instance_eval code
           if bb.instrs&.first.kind_of?(LabelInstr)
             bb.instrs.pop(bb.instrs.length - 1)
           else
@@ -486,13 +524,22 @@ module RPiet
         def jump? = true
 
         def to_ruby_pre
-          "$Operands#{@step} = [#{operands[1..-1].map { |o| ":\"#{o}\""}.join(', ')}]\n"
+          "@Operands#{@step} = [#{operands[1..-1].map { |o| ":#{o}"}.join(', ')}]\n"
         end
 
-        def to_ruby = <<~"EOS"
-          o = #{ruby_operand(operands.first)}.ordinal
-          $Operands#{@step}[o]\n
-        EOS
+        def to_ruby(cfg, bb) = "  @Operands#{@step}[#{ruby_operand(operands.first)}.ordinal]\n"
+      end
+
+      class MultiplePushInstr < Instr
+        def to_ruby(cfg, bb) = "  @stack.push #{operands.map {|o| ruby_operand(o)}.join(', ')}\n"
+      end
+
+      class MultiplePopInstr < Instr
+        def to_ruby(cfg, bb)
+          count = operands.size
+
+          "  #{operands.map {|o| ruby_operand(o)}.join(', ')} = @stack.pop(#{count})\n"
+        end
       end
     end
   end

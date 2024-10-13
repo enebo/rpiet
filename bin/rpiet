@@ -16,6 +16,7 @@ opts = OptionParser.new do |opts|
   opts.on("-t", "--time", "time execution") { time_execution = true }
   opts.on("-r", "--runtime runtime") do |runtime|
     run = case runtime
+          when 'native' then :native
           when 'graph' then :graph
           when 'ir' then :ir
           when 'cfg' then :cfg
@@ -68,6 +69,9 @@ runner = case run
          when :cfg
            require 'rpiet/ir/ir_cfg_interpreter'
            RPiet::IR::IRCFGInterpreter.new(image, log)
+         when :native
+           require 'rpiet/ir/ir_native_interpreter'
+           RPiet::IR::IRNativeInterpreter.new(image, log)
          else
            RPiet::Interpreter.new(image, log)
          end

@@ -240,13 +240,13 @@ module RPiet
         @bb_map.each_value do |bb|
           last_instr = bb.last_instr
           #puts "BB #{bb.label} #{last_instr} #{bb.instrs.size}"
-          if bb.label.to_s =~ /pntr\[3\](\d+)/
+          if bb.label.to_s =~ /pntr_3_(\d+)/
             pntrs[$1] ||= []
             pntrs[$1] << [$1, "3", bb]
             next
           end
           if last_instr.kind_of?(Instructions::BEQInstr)
-            if last_instr.label.to_s =~ /pntr\[(\d+)\](\d+)/
+            if last_instr.label.to_s =~ /pntr_(\d+)_(\d+)/
               #puts "1: #{$1}, 2: #{$2}"
               pntrs[$2] ||= []
               pntrs[$2] << [$2, $1, bb]

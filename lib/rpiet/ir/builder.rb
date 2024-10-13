@@ -76,11 +76,11 @@ module RPiet
       add DPRotateInstr.new(dp, variable)
       labels = []
       3.times do |i|
-        label = LabelInstr.new(:"pntr[#{i}]#{@graph_node.step}")
-        add BEQInstr.new dp, DirectionPointer.from_ordinal(i), label.value
+        label = LabelInstr.new(:"pntr_#{i}_#{@graph_node.step}")
+        add BEQInstr.new dp, DirectionPointer.new(i), label.value
         labels << label
       end
-      label = LabelInstr.new(:"pntr[3]#{@graph_node.step}")
+      label = LabelInstr.new(:"pntr_3_#{@graph_node.step}")
       labels << label
       jump label.value
 
@@ -102,7 +102,7 @@ module RPiet
       if node.paths[0] == node.paths[1]
         visit(worklist << node.paths[0])
       else
-        label(:"swch[-1]#{@graph_node.step}") do |next_label|
+        label(:"swch_left_#{@graph_node.step}") do |next_label|
           add BNEInstr.new(cc, CodelChooser::LEFT, next_label)
           visit(worklist << node.paths[0])
         end
@@ -116,7 +116,7 @@ module RPiet
       @graph_node = node
 
       unless label  # first time to insert label
-        label_operand = :"re.#{node.object_id}"
+        label_operand = :"re_#{node.object_id}"
         label = LabelInstr.new(label_operand)
         label.graph_node = node
         @jump_labels[node] = label

@@ -238,7 +238,7 @@ module RPiet
 
       def execute(machine)
         top = machine.stack.pop
-        @values[machine.dp.rotate!(top).value]
+        @values[machine.dp.rotate!(top).ordinal]
       end
     end
 

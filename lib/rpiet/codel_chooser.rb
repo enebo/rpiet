@@ -6,7 +6,10 @@ module RPiet
     attr_reader :direction
 
     def initialize; @direction = LEFT; end
-    def switch!(amount = 1); @direction *= -1.**(amount % 2); end
+    def switch!(amount = 1)
+      @direction *= -1.**(amount % 2)
+      self
+    end
 
     def ascii(dp)
       case dp.direction

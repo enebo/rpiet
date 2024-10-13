@@ -1,33 +1,34 @@
 module RPiet
   class Cycle
     attr_reader :type, :value
+    attr_accessor :length
 
     def initialize(value, name, list)
       @value, @name, @list = value, name.to_s.downcase, list
     end
 
     def delta(other)
-      (@value - other.value) % @list.length      
+      (@value - other.value) % @length
     end
 
     def -(other)
-      @list[(@value - other.value) % @list.length]
+      @list[(@value - other.value) % @length]
     end
 
     def +(other)
-      @list[(@value + other.value) % @list.length]
+      @list[(@value + other.value) % @length]
     end
 
     def incr(amount = 1)
-      @list[(@value + amount) % @list.length]
+      @list[(@value + amount) % @length]
     end
 
     def decr(amount = 1)
-      @list[(@value - amount) % @list.length]
+      @list[(@value - amount) % @length]
     end
 
     def abs(amount)
-      @list[amount % @list.length]
+      @list[amount % @length]
     end
 
     def to_initial
@@ -60,6 +61,9 @@ module RPiet
         list[i] = Cycle.new(i, name, list)
         holder_module.const_set name, list[i]
       end
+
+      # Micro-opt...@list.length is slower than @length
+      list.each { |element| element.length = list.length}
     end
     module_function :cycle
   end

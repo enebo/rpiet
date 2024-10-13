@@ -14,33 +14,29 @@ module RPiet
 
   class << Direction::RIGHT
     include DirectionExtras
-    def deltas; [1, 0]; end
+    def deltas = [1, 0]
   end
 
   class << Direction::DOWN
     include DirectionExtras
-    def deltas; [0, 1]; end
+    def deltas = [0, 1]
   end
 
   class << Direction::LEFT
     include DirectionExtras
-    def deltas; [-1, 0]; end
+    def deltas = [-1, 0]
   end
 
   class << Direction::UP
     include DirectionExtras
-    def deltas; [0, -1]; end
+    def deltas = [0, -1]
   end
 
   class DirectionPointer
     attr_accessor :direction
 
-    def self.from_ordinal(value)
-      new.tap { |dp| dp.from_ordinal!(value) }
-    end
-
-    def initialize
-      @direction = RPiet::Direction::RIGHT
+    def initialize(value=nil)
+      @direction = value ? RPiet::Direction::RIGHT.abs(value) : RPiet::Direction::RIGHT
     end
 
     def ==(other)
@@ -49,32 +45,24 @@ module RPiet
 
     def rotate!(amount = 1)
       @direction = @direction.incr amount
+      self
     end
 
-    def degrees
-      @direction.value * 90
-    end
+    def degrees = @direction.value * 90
 
     def from_ordinal!(ordinal)
       @direction = @direction.abs(ordinal)
+      self
     end
 
-    def next_possible(x, y)
-      @direction.next_point(x, y)
-    end
+    def next_possible(x, y) = @direction.next_point(x, y)
 
-    def ordinal
-      @direction.value
-    end
+    def ordinal = @direction.value
 
     ASCII_ARROWS = ['>', 'v', '<', '^']
-    def ascii
-      ASCII_ARROWS[@direction.value]
-    end
+    def ascii = ASCII_ARROWS[@direction.value]
 
-    def inspect
-      ordinal.to_s
-    end
+    def inspect = ordinal.to_s
     alias :to_s :inspect
   end
 end
