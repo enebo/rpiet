@@ -53,6 +53,10 @@ module RPiet
           else operand
           end
         end
+
+        def ruby_indent(string, indent='  ')
+          string.split("\n").map {|line| indent + line + "\n"}.join('')
+        end
       end
 
       module ResultInstr
@@ -82,11 +86,11 @@ module RPiet
         end
 
         def ruby_assign_2
-          if operand1.kind_of?(Operands::Poperand) && operand2.kind_of?(Operands::Poperand)
-            "b, a = @stack.pop(2)"
-          else
+          #          if operand1.kind_of?(Operands::Poperand) && operand2.kind_of?(Operands::Poperand)
+          #  "b, a = @stack.pop(2)"
+          #else
             "b, a = #{ruby_operand(operand2)}, #{ruby_operand(operand1)}"
-          end
+          #end
         end
       end
 
@@ -144,7 +148,7 @@ module RPiet
           if stack_independent?
             "  #{ruby_operand(result)} = #{ruby_operand(operand1)} #{oper} #{ruby_operand(operand2)}\n"
           else
-            <<~"EOS"
+            ruby_indent <<~"EOS"
               #{ruby_assign_2}
               #{ruby_operand(result)} = a #{oper} b
            EOS
@@ -213,7 +217,7 @@ module RPiet
 
         def operand = @value
 
-        def to_ruby(cfg, bb) = "  # #{value}\n"
+        def to_ruby(cfg, bb) = nil
         def to_s = "#{operation}(#{value})"
       end
 
@@ -237,7 +241,7 @@ module RPiet
           machine.output.puts
           nil
         end
-        def to_ruby(cfg, bb) = <<~"EOS"
+        def to_ruby(cfg, bb) = ruby_indent <<~"EOS"
           output.print "Enter an integer: "
           #{ruby_operand(result)} = input.gets.to_i
           output.puts
@@ -253,7 +257,7 @@ module RPiet
           nil
         end
 
-        def to_ruby(cfg, bb) = <<~"EOS"
+        def to_ruby(cfg, bb) = ruby_indent <<~"EOS"
           output.print "> "
           #{ruby_operand(result)} = input.read(1).ord
         EOS
@@ -304,7 +308,7 @@ module RPiet
 
         def disasm = "#{operation} #{disasm_operand(depth)} #{disasm_operand(num)}"
 
-        def to_ruby(cfg, bb) = <<~"EOS"
+        def to_ruby(cfg, bb) = ruby_indent <<~"EOS"
           d, n = #{ruby_operand(depth)}, #{ruby_operand(num)}
           n %= d
           if d > 0 && num != 0
@@ -336,7 +340,7 @@ module RPiet
 
         alias :value :label
 
-        def to_ruby(cfg, bb) = "  return :\"#{label}\"\n"
+        def to_ruby(cfg, bb) = "  return #{label}\n"
         def to_s = "jump -> #{value}#{to_s_comment}"
       end
 
@@ -362,7 +366,7 @@ module RPiet
           if stack_independent?
             "  #{ruby_operand(operand1)} == #{ruby_operand(operand2)} ? :\"#{label}\" : #{cfg.outgoing_target(bb, :fall_through)&.label}\n"
           else
-            <<~"EOS"
+            ruby_indent <<~"EOS"
               #{ruby_assign_2}
               return a == b ? :"#{label}" : :"#{cfg.outgoing_target(bb, :fall_through)&.label}"
             EOS
@@ -380,7 +384,7 @@ module RPiet
           if stack_independent?
             "  #{ruby_operand(operand1)} != #{ruby_operand(operand2)} ? :\"#{label}\" : #{cfg.outgoing_target(bb, :fall_through)&.label}\n"
           else
-            <<~"EOS"
+            ruby_indent <<~"EOS"
               #{ruby_assign_2}
               return a != b ? :"#{label}" : :"#{cfg.outgoing_target(bb, :fall_through)&.label}"
             EOS
@@ -403,7 +407,7 @@ module RPiet
           if stack_independent?
             "  #{ruby_operand(result)} = #{ruby_operand(operand1)} > #{ruby_operand(operand2)} ? 1 : 0\n"
           else
-            <<~"EOS"
+            ruby_indent <<~"EOS"
               #{ruby_assign_2}
               #{ruby_operand(result)} = a > b ? 1 : 0
            EOS
@@ -426,7 +430,7 @@ module RPiet
           if stack_independent?
             "  #{ruby_operand(result)} = #{ruby_operand(operand1)} != #{ruby_operand(operand2)} ? 0 : 1\n"
           else
-            <<~"EOS"
+            ruby_indent <<~"EOS"
               #{ruby_assign_2}
               #{ruby_operand(result)} = a != b ? 0 : 1
            EOS
@@ -441,7 +445,14 @@ module RPiet
           machine.dp.from_ordinal!(decode(machine, operand))
           nil
         end
-        def to_ruby(cfg, bb) = "  @dp.from_ordinal!(#{ruby_operand(operand)})\n"
+        def to_ruby(cfg, bb)
+          if operand.kind_of?(Numeric) && operand >= 0 && operand < 4
+            direction = DirectionPointer.new(operand)
+            "  @dp.direction = Direction::#{direction.as_constant}\n"
+          else
+            "  @dp.from_ordinal!(#{ruby_operand(operand)})\n"
+          end
+        end
       end
 
       class CCInstr < SingleOperandInstr
@@ -449,7 +460,15 @@ module RPiet
           machine.cc.from_ordinal!(decode(machine, operand))
           nil
         end
-        def to_ruby(cfg, bb) = "  @cc.from_ordinal!(#{ruby_operand(operand)})\n"
+        def to_ruby(cfg, bb)
+          if operand.kind_of?(Numeric) && (operand == -1 || operand == 1)
+            cc = CodelChooser.new
+            cc.switch!(operand)
+            "  @cc.direction = CodelChooser::#{cc.as_constant}\n"
+          else
+            "  @cc.from_ordinal!(#{ruby_operand(operand)})\n"
+          end
+        end
       end
 
       class DPRotateInstr < SingleOperandInstr
@@ -478,37 +497,6 @@ module RPiet
         def to_ruby(cfg, bb) = "  #{ruby_operand(result)} = @cc.switch!(#{ruby_operand(operand)})\n"
 
         def to_s = super + " #{operand}"
-      end
-
-
-      class MegaInstr < Instr
-        def initialize
-          super
-        end
-
-        def self.create(method_object, cfg, bb)
-          s = ["def #{bb.label}()\n"]
-          bb.instrs.each do |instr|
-            s << instr.to_ruby(cfg, bb)
-            #puts "instr: #{instr.disasm}, r: #{instr.to_ruby(cfg, bb)}"
-          end
-          unless bb.instrs&.last&.jump?
-            target = cfg.outgoing_target(bb, :fall_through)&.label
-            line = target ? ":\"#{target}\"" : 'nil'
-            s << "#{line}\n"
-          end
-          s << "end\n"
-          code = s.join('')
-          puts "#{bb.label}:\n#{code}"
-          mega = MegaInstr.new
-          method_object.instance_eval code
-          if bb.instrs&.first.kind_of?(LabelInstr)
-            bb.instrs.pop(bb.instrs.length - 1)
-          else
-            bb.instrs.clear
-          end
-          bb.instrs << mega
-        end
       end
 
       class PntrInstr < Instr

@@ -55,6 +55,8 @@ module RPiet
       self
     end
 
+    def as_constant = %w[RIGHT DOWN LEFT UP][ordinal]
+
     def next_possible(x, y) = @direction.next_point(x, y)
 
     def ordinal = @direction.value
