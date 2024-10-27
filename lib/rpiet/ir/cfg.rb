@@ -24,7 +24,7 @@ module RPiet
 
       # If this bb only meaningfully contains a jump (e.g. jump + noops/label)
       def only_contains_jump?
-        instrs&.last.class == Instructions::JumpInstr && !instrs[0...-1].find { |instr| !instr.noop? }
+        instrs&.last.class == Instructions::JumpInstr && !instrs[0...-2].find { |instr| !instr.noop? }
       end
 
       # Maybe a bit hacky but inspect is for dot output. consider changing this.
@@ -273,6 +273,11 @@ module RPiet
               end
               new_instr.operands << label
             else
+              if bb.only_contains_jump?
+                jump_bb = outgoing_target(bb, :jump)
+                remove_bb(bb)
+                bb = jump_bb
+              end
               add_edge(zero_bb, bb, :jump)
               new_instr.operands << bb.label
             end

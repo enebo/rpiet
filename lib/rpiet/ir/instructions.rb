@@ -515,6 +515,8 @@ module RPiet
           "@Operands#{@step} = [#{operands[1..-1].map { |o| ":#{o}"}.join(', ')}]\n"
         end
 
+        def to_s = "#{operation} #{operands.first}"
+
         def to_ruby(cfg, bb) = "  @Operands#{@step}[#{ruby_operand(operands.first)}.ordinal]\n"
       end
 

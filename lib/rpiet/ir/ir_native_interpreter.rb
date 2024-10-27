@@ -10,6 +10,7 @@ module RPiet
         @instructions = builder.instructions
         @cfg = CFG.new(@instructions)
         @instructions = @cfg.instructions(Passes::Peephole)
+        @cfg.write_to_dot_file
         # Note: left over from experiment but pop or push with n will construct an array and this outweighs the benefit
         # combine_pushes_and_pops
         generate_ruby_bb_methods
