@@ -1,7 +1,15 @@
 require 'jrubyfx'
 require 'thread'
 
+# FIXME : JRubyFX is not implementing add correctly.
+class Java::JavafxSceneControl::ScrollPane
+  def add(child)
+    set_content(child)
+  end
+end
+
 module RPiet
+
   class Debugger < JRubyFX::Application
     include JRubyFX
 
