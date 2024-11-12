@@ -1,3 +1,4 @@
+#!/bin/env ruby
 require 'rpiet/color'
 require 'rpiet/image/ascii_image'
 
